@@ -1617,8 +1617,57 @@ class AuthorityState:
             observations = {}
             rewards = {}
             done = False
-            for _ in range(frames):
+            render_tail: list[dict[str, Any]] = []
+
+            def clean_vec(value: Any) -> list[float]:
+                try:
+                    return [float(item) for item in value]
+                except Exception:
+                    return []
+
+            def sphere_render_state() -> dict[str, Any]:
+                organisms = []
+                for org in getattr(arena, "organisms", []) or []:
+                    organisms.append(
+                        {
+                            "idx": int(getattr(org, "idx", len(organisms))),
+                            "theta": float(getattr(org, "theta", 0.0)),
+                            "phi": float(getattr(org, "phi", 0.0)),
+                            "position": clean_vec(getattr(org, "position", ())),
+                            "alive": bool(getattr(org, "alive", True)),
+                            "catches": int(getattr(org, "catches", 0)),
+                            "is_commander": bool(getattr(org, "is_commander", False)),
+                            "color": clean_vec(getattr(org, "color", ())),
+                        }
+                    )
+                balls_state = []
+                for ball in getattr(arena, "balls", []) or []:
+                    balls_state.append(
+                        {
+                            "position": clean_vec(getattr(ball, "position", ())),
+                            "velocity": clean_vec(getattr(ball, "velocity", ())),
+                            "active": bool(getattr(ball, "active", True)),
+                            "bounces": int(getattr(ball, "bounces", 0)),
+                            "last_catcher": getattr(ball, "last_catcher", None),
+                        }
+                    )
+                return {
+                    "frame": int(getattr(arena, "total_frames", 0)),
+                    "organisms": organisms,
+                    "balls": balls_state,
+                    "commander": getattr(arena, "current_commander", None),
+                    "active_command": clean_vec(getattr(arena, "active_command", ())),
+                    "catches": int(getattr(arena, "collective_catches", 0)),
+                    "misses": int(getattr(arena, "collective_misses", 0)),
+                    "streak": int(getattr(arena, "current_streak", 0)),
+                    "best_streak": int(getattr(arena, "best_streak", 0)),
+                }
+
+            sample_every = max(1, frames // 48)
+            for frame_idx in range(frames):
                 observations, rewards, done, last_info = arena.step()
+                if frame_idx % sample_every == 0 or done:
+                    render_tail.append(sphere_render_state())
                 if train:
                     for org in arena.organisms:
                         if org.idx in arena.prev_observations and org.idx in rewards:
@@ -1647,6 +1696,8 @@ class AuthorityState:
                 "rewards": {str(k): float(v) for k, v in rewards.items()},
                 "done": bool(done),
                 "info": last_info,
+                "render_state": sphere_render_state(),
+                "render_tail": render_tail[-48:],
                 "losses": losses,
                 "state": self.capability_snapshot(),
             }

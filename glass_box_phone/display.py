@@ -198,24 +198,44 @@ class GameDisplay:
     
     # Window size - optimized for OBS capture
     WIN_W, WIN_H = 1400, 920
-    
-    # Game display - BIGGER! Takes most of the screen
+
+    # Defaults are replaced per instance so the 1200x780 Cocoon phone window
+    # does not inherit stale 1400x920 panel math.
     GAME_W, GAME_H = 850, 640
-    
-    # Right panel for cascade-lattice data
     PANEL_W = WIN_W - GAME_W - 20
     
     def __init__(
         self,
         width: int = 1400,
         height: int = 920,
-        title: str = "🎰 CASCADE-LATTICE ARCADE",
+        title: str = "Cocoon Glass Authority",
         target_fps: int = 30,
     ):
-        self.width = width
-        self.height = height
+        self.width = max(960, int(width))
+        self.height = max(640, int(height))
         self.title = title
         self.target_fps = target_fps
+        self._fullscreen = False
+        self._windowed_size = (self.width, self.height)
+
+        # Instance layout. Most draw routines use self.GAME_* and self.PANEL_W,
+        # so this keeps the existing surface API while making it responsive.
+        self._set_layout(self.width, self.height)
+
+        self._theme = {
+            "bg": (5, 7, 12),
+            "grid": (16, 24, 30),
+            "panel": (9, 15, 21),
+            "panel_hi": (13, 24, 31),
+            "line": (40, 68, 76),
+            "teal": (61, 222, 180),
+            "cyan": (93, 192, 245),
+            "amber": (235, 177, 74),
+            "green": (110, 226, 142),
+            "red": (232, 96, 76),
+            "text": (224, 235, 232),
+            "muted": (130, 151, 158),
+        }
         
         self._screen: Optional[pygame.Surface] = None
         self._clock: Optional[pygame.time.Clock] = None
@@ -256,9 +276,12 @@ class GameDisplay:
         # Queue
         self._queue: List[Dict] = []
         self._cocoon_overlay: Optional[Dict[str, Any]] = None
+        self._operational_surface: Optional[Dict[str, Any]] = None
+        self._glass_view_mode = "ops"
         
         # Game selection menu
         self._menu_state: Optional[Dict] = None  # Menu data when open
+        self._button_zones: List[Dict[str, Any]] = []
         
         # Stats
         self._episode_reward: float = 0.0
@@ -271,6 +294,19 @@ class GameDisplay:
         
         # Fonts
         self._fonts: Dict[str, pygame.font.Font] = {}
+
+    def _set_layout(self, width: int, height: int):
+        self.width = max(960, int(width))
+        self.height = max(640, int(height))
+        self._top_bar_h = 56
+        self._panel_gap = 10
+        self._bottom_h = 126
+        desired_panel = int(self.width * 0.34)
+        self.PANEL_W = max(330, min(440, desired_panel))
+        self.GAME_W = max(520, self.width - self.PANEL_W - self._panel_gap)
+        self.PANEL_W = max(300, self.width - self.GAME_W - self._panel_gap)
+        self.GAME_H = max(390, self.height - self._top_bar_h - self._bottom_h - 6)
+        self._game_y = self._top_bar_h
     
     def start(self):
         """Initialize pygame display. Safe to call multiple times."""
@@ -299,24 +335,139 @@ class GameDisplay:
         self._clock = pygame.time.Clock()
         self._running = True
         
+        font_family = "DejaVu Sans Mono,Consolas,monospace"
         self._fonts = {
-            'xs': pygame.font.SysFont("Consolas", 10),
-            'sm': pygame.font.SysFont("Consolas", 12),
-            'md': pygame.font.SysFont("Consolas", 16),
-            'lg': pygame.font.SysFont("Consolas", 28, bold=True),
-            'title': pygame.font.SysFont("Consolas", 22, bold=True),
-            'huge': pygame.font.SysFont("Consolas", 48, bold=True),
+            'xs': pygame.font.SysFont(font_family, 10),
+            'sm': pygame.font.SysFont(font_family, 12),
+            'md': pygame.font.SysFont(font_family, 15),
+            'lg': pygame.font.SysFont(font_family, 24, bold=True),
+            'title': pygame.font.SysFont(font_family, 20, bold=True),
+            'huge': pygame.font.SysFont(font_family, 38, bold=True),
         }
         
         # Render initial frame so ffmpeg sees something (not X11 background)
-        self._screen.fill((2, 2, 8))  # Dark background
-        title = self._fonts['huge'].render("GLASS BOX ARCADE", True, (0, 255, 200))
-        subtitle = self._fonts['lg'].render("Initializing...", True, (150, 150, 150))
-        self._screen.blit(title, (self.width//2 - title.get_width()//2, self.height//2 - 50))
-        self._screen.blit(subtitle, (self.width//2 - subtitle.get_width()//2, self.height//2 + 20))
+        self._screen.fill(self._theme["bg"])
+        title = self._fonts['huge'].render("COCOON GLASS AUTHORITY", True, self._theme["teal"])
+        subtitle = self._fonts['md'].render("Facility fabric booting through pygame surface", True, self._theme["muted"])
+        self._screen.blit(title, (self.width//2 - title.get_width()//2, self.height//2 - 46))
+        self._screen.blit(subtitle, (self.width//2 - subtitle.get_width()//2, self.height//2 + 10))
         pygame.display.flip()
         
         print(f"[DISPLAY] Game window opened: {self.width}x{self.height}")
+
+    def toggle_fullscreen(self):
+        """Toggle the pygame rendering surface between windowed and fullscreen."""
+        if not self._screen or not pygame.display.get_init():
+            return
+        try:
+            if self._fullscreen:
+                new_w, new_h = self._windowed_size
+                self._screen = pygame.display.set_mode((new_w, new_h), pygame.SWSURFACE)
+                self._fullscreen = False
+                self._set_layout(new_w, new_h)
+                print(f"[DISPLAY] Fullscreen off: {new_w}x{new_h}")
+            else:
+                self._windowed_size = (self.width, self.height)
+                self._screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.SWSURFACE)
+                new_w, new_h = self._screen.get_size()
+                self._fullscreen = True
+                self._set_layout(new_w, new_h)
+                print(f"[DISPLAY] Fullscreen on: {new_w}x{new_h}")
+            pygame.display.set_caption(self.title)
+        except pygame.error as exc:
+            print(f"[DISPLAY] Fullscreen toggle failed: {exc}")
+
+    def _fit_text(self, text: Any, font_key: str, max_width: int) -> str:
+        """Trim text by rendered width so compact panels do not overflow."""
+        text = str(text)
+        font = self._fonts[font_key]
+        if font.size(text)[0] <= max_width:
+            return text
+        if max_width <= font.size("...")[0]:
+            return ""
+        while text and font.size(text + "...")[0] > max_width:
+            text = text[:-1]
+        return text + "..."
+
+    def _blit_text(self, text: Any, pos: tuple[int, int], color: tuple[int, int, int], font_key: str = "sm", max_width: int | None = None):
+        text = self._fit_text(text, font_key, max_width) if max_width is not None else str(text)
+        if not text:
+            return
+        self._screen.blit(self._fonts[font_key].render(text, True, color), pos)
+
+    def _draw_panel(
+        self,
+        rect: tuple[int, int, int, int],
+        fill: tuple[int, int, int] | None = None,
+        border: tuple[int, int, int] | None = None,
+        alpha: int = 224,
+        radius: int = 6,
+        width: int = 1,
+    ):
+        x, y, w, h = rect
+        surf = pygame.Surface((w, h), pygame.SRCALPHA)
+        panel_fill = fill or self._theme["panel"]
+        pygame.draw.rect(surf, (*panel_fill, alpha), (0, 0, w, h), border_radius=radius)
+        if border:
+            pygame.draw.rect(surf, (*border, min(255, alpha + 20)), (0, 0, w, h), width, border_radius=radius)
+        self._screen.blit(surf, (x, y))
+
+    def _reset_button_zones(self):
+        self._button_zones = []
+
+    def _register_button(self, rect: tuple[int, int, int, int], action: dict[str, Any]):
+        self._button_zones.append({"rect": rect, "action": dict(action)})
+
+    def _button_at(self, pos: tuple[int, int]) -> Optional[Dict[str, Any]]:
+        px, py = pos
+        for zone in reversed(self._button_zones):
+            x, y, w, h = zone["rect"]
+            if x <= px <= x + w and y <= py <= y + h:
+                return dict(zone["action"])
+        return None
+
+    def _draw_background(self, pulse: float, slow_pulse: float):
+        self._screen.fill(self._theme["bg"])
+        grid_color = self._theme["grid"]
+        for gx in range(0, self.width, 32):
+            pygame.draw.line(self._screen, grid_color, (gx, 0), (gx, self.height), 1)
+        for gy in range(0, self.height, 32):
+            pygame.draw.line(self._screen, grid_color, (0, gy), (self.width, gy), 1)
+
+        panel_edge = self.GAME_W + self._panel_gap // 2
+        pygame.draw.line(self._screen, self._theme["line"], (panel_edge, 0), (panel_edge, self.height), 2)
+        live_color = (
+            int(self._theme["teal"][0] + 24 * pulse),
+            self._theme["teal"][1],
+            int(self._theme["teal"][2] + 30 * slow_pulse),
+        )
+        pygame.draw.line(self._screen, live_color, (0, self._top_bar_h - 1), (self.width, self._top_bar_h - 1), 2)
+
+    def _draw_top_bar(self, pulse: float):
+        bar = pygame.Surface((self.width, self._top_bar_h), pygame.SRCALPHA)
+        bar.fill((7, 13, 18, 238))
+        self._screen.blit(bar, (0, 0))
+        pygame.draw.rect(self._screen, self._theme["line"], (8, 8, self.width - 16, self._top_bar_h - 16), 1, border_radius=6)
+
+        self._blit_text("COCOON GLASS AUTHORITY", (18, 13), self._theme["teal"], "title", max_width=320)
+        active = self._game_display_name or "Cocoon"
+        self._blit_text(active, (18, 35), self._theme["muted"], "xs", max_width=360)
+
+        overlay = self._cocoon_overlay or {}
+        route = overlay.get("route") or self._ai_action or "facility route pending"
+        mid_x = max(380, self.width // 3)
+        self._blit_text(route, (mid_x, 14), self._theme["cyan"], "sm", max_width=self.width - mid_x - 170)
+        teaches = overlay.get("teaches") or "semantic learning surface"
+        self._blit_text(teaches, (mid_x, 34), (180, 196, 188), "xs", max_width=self.width - mid_x - 170)
+
+        status = str(overlay.get("status") or self._control_mode or "live").upper()
+        afk = self._operational_surface.get("afk", {}) if isinstance(self._operational_surface, dict) else {}
+        if afk.get("enabled"):
+            status = f"AFK {str(afk.get('status', 'on')).upper()}"
+        pip_x = self.width - 132
+        pip_color = self._theme["green"] if status in {"OK", "LIVE", "PHONE"} or status.startswith("AFK") else self._theme["amber"]
+        pygame.draw.circle(self._screen, pip_color, (pip_x, 27), int(5 + 2 * pulse))
+        self._blit_text(status, (pip_x + 12, 18), self._theme["text"], "sm", max_width=110)
     
     def stop(self):
         """Clean shutdown - safe even if X11 is dead."""
@@ -465,6 +616,15 @@ class GameDisplay:
     def set_cocoon_overlay(self, overlay: Optional[Dict[str, Any]]):
         """Set Cocoon-specific operational metadata drawn over the game view."""
         self._cocoon_overlay = dict(overlay) if overlay else None
+
+    def set_operational_surface(self, surface: Optional[Dict[str, Any]]):
+        """Set dense Cocoon wealth/cascade/game telemetry for the pygame surface."""
+        self._operational_surface = dict(surface) if isinstance(surface, dict) else None
+
+    def set_glass_view_mode(self, mode: str):
+        """Switch the main pygame surface between operational views."""
+        mode = (mode or "ops").lower()
+        self._glass_view_mode = mode if mode in {"ops", "games", "feed"} else "ops"
     
     def set_genesis(self, genesis_root: str):
         """Set genesis root for provenance chain."""
@@ -487,7 +647,7 @@ class GameDisplay:
     
     def handle_events(self) -> Dict[str, Any]:
         """Handle pygame events, return actions."""
-        events = {"quit": False, "key": None, "hold_key": None}
+        events = {"quit": False, "key": None, "hold_key": None, "fullscreen": False, "button": None, "mouse": None}
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -511,6 +671,11 @@ class GameDisplay:
                     events["hold_key"] = "RIGHT"
                 elif event.key == pygame.K_SPACE:
                     events["hold_key"] = "FIRE"
+                elif event.key == pygame.K_F11 or (event.key in (pygame.K_RETURN, pygame.K_KP_ENTER) and event.mod & pygame.KMOD_ALT):
+                    events["fullscreen"] = True
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                events["mouse"] = event.pos
+                events["button"] = self._button_at(event.pos)
         
         return events
     
@@ -543,6 +708,8 @@ class GameDisplay:
             print("[DISPLAY] render() returning False: quit event received")
             self._running = False
             return False
+        if events.get("fullscreen"):
+            self.toggle_fullscreen()
         
         # Safety check - don't render if pygame quit
         if not self._running or self._screen is None:
@@ -551,18 +718,28 @@ class GameDisplay:
         try:
             pulse = (math.sin(time.time() * 6) + 1) / 2
             slow_pulse = (math.sin(time.time() * 2) + 1) / 2
-            
-            self._screen.fill((2, 2, 8))
+            self._reset_button_zones()
+            self._draw_background(pulse, slow_pulse)
+            self._draw_top_bar(pulse)
         except pygame.error:
             self._running = False
             return False
-        
-        self._draw_game_view(pulse)
-        self._draw_control_mesh(pulse, slow_pulse)  # NEW: Visual mesh for user control
-        self._draw_cocoon_overlay(pulse)
-        self._draw_state_vector()
-        self._draw_action_sequence()
-        self._draw_right_panel(pulse, slow_pulse)
+
+        if self._operational_surface:
+            if self._glass_view_mode == "games":
+                self._draw_games_view(pulse, slow_pulse)
+            elif self._glass_view_mode == "feed":
+                self._draw_feed_view(pulse, slow_pulse)
+            else:
+                self._draw_ops_view(pulse, slow_pulse)
+            self._draw_glass_right_panel(pulse, slow_pulse)
+        else:
+            self._draw_game_view(pulse)
+            self._draw_control_mesh(pulse, slow_pulse)
+            self._draw_cocoon_overlay(pulse)
+            self._draw_state_vector()
+            self._draw_action_sequence()
+            self._draw_right_panel(pulse, slow_pulse)
         
         # Draw game menu OVER everything if open - get thread-safe copy
         menu_state_copy = None
@@ -591,6 +768,544 @@ class GameDisplay:
         # Don't do clock.tick() here to avoid double-limiting FPS
         
         return True
+
+    def _main_rect(self) -> tuple[int, int, int, int]:
+        x = 10
+        y = self._top_bar_h + 10
+        return (x, y, self.GAME_W - 20, self.height - y - 10)
+
+    def _age_text(self, timestamp: Any) -> str:
+        try:
+            age = max(0, time.time() - float(timestamp))
+        except Exception:
+            return "--"
+        if age < 1:
+            return "now"
+        if age < 60:
+            return f"{int(age)}s"
+        if age < 3600:
+            return f"{int(age // 60)}m"
+        return f"{int(age // 3600)}h"
+
+    def _short_hash(self, value: Any, length: int = 18) -> str:
+        text = str(value or "")
+        return text[:length] if text else "none"
+
+    def _status_color(self, status: Any) -> tuple[int, int, int]:
+        text = str(status or "").lower()
+        if text in {"ok", "ready", "live", "running", "watching"} or "ready" in text:
+            return self._theme["green"]
+        if "block" in text or "error" in text or "miss" in text or "disabled" in text:
+            return self._theme["red"]
+        if "need" in text or "limited" in text or "dependency" in text:
+            return self._theme["amber"]
+        return self._theme["cyan"]
+
+    def _draw_mode_tabs(self, x: int, y: int, w: int):
+        tabs = [("ops", "OPS"), ("games", "GAMES"), ("feed", "FEED")]
+        tab_w = min(96, max(72, (w - 8) // len(tabs)))
+        for idx, (mode, label) in enumerate(tabs):
+            tx = x + idx * (tab_w + 4)
+            active = mode == self._glass_view_mode
+            fill = self._theme["panel_hi"] if active else (7, 11, 15)
+            border = self._theme["teal"] if active else self._theme["line"]
+            self._draw_panel((tx, y, tab_w, 24), fill=fill, border=border, alpha=232, radius=4)
+            color = self._theme["teal"] if active else self._theme["muted"]
+            self._blit_text(label, (tx + 12, y + 6), color, "xs", max_width=tab_w - 20)
+            self._register_button((tx, y, tab_w, 24), {"type": "mode", "mode": mode})
+        hint = "O/G/F switch views | Enter run | P prime | S sphere | A autopilot | R refresh"
+        self._blit_text(hint, (x + len(tabs) * (tab_w + 4) + 12, y + 6), self._theme["muted"], "xs", max_width=max(80, w - len(tabs) * (tab_w + 4) - 20))
+
+    def _draw_metric_card(self, rect: tuple[int, int, int, int], label: str, value: Any, color: tuple[int, int, int]):
+        x, y, w, h = rect
+        self._draw_panel(rect, fill=(8, 14, 18), border=(26, 48, 54), alpha=220, radius=5)
+        self._blit_text(label.upper(), (x + 8, y + 6), self._theme["muted"], "xs", max_width=w - 16)
+        self._blit_text(value, (x + 8, y + 22), color, "md", max_width=w - 16)
+
+    def _draw_ops_view(self, pulse: float, slow_pulse: float):
+        surface = self._operational_surface or {}
+        x, y, w, h = self._main_rect()
+        self._draw_mode_tabs(x, y, w)
+        y += 34
+        h -= 34
+
+        header_h = min(126, max(110, h // 5))
+        self._draw_selected_facility((x, y, w, header_h), surface, pulse)
+
+        mid_y = y + header_h + 10
+        mid_h = max(250, min(330, int(h * 0.48)))
+        graph_w = max(360, int(w * 0.62))
+        side_w = w - graph_w - 10
+        self._draw_lattice_graph((x, mid_y, graph_w, mid_h), surface, pulse)
+        self._draw_context_heat((x + graph_w + 10, mid_y, side_w, mid_h), surface, pulse)
+
+        controller_y = mid_y + mid_h + 10
+        self._draw_facility_controller((x, controller_y, w, max(120, y + h - controller_y)), surface, pulse)
+
+    def _draw_selected_facility(self, rect: tuple[int, int, int, int], surface: dict[str, Any], pulse: float):
+        x, y, w, h = rect
+        selected = surface.get("selected") if isinstance(surface.get("selected"), dict) else {}
+        state = surface.get("state") if isinstance(surface.get("state"), dict) else {}
+        sphere = surface.get("sphere") if isinstance(surface.get("sphere"), dict) else {}
+        diagnostics = surface.get("diagnostics") if isinstance(surface.get("diagnostics"), dict) else {}
+        border = selected.get("border") or self._theme["teal"]
+        if not isinstance(border, tuple):
+            border = self._theme["teal"]
+        self._draw_panel(rect, fill=(8, 16, 20), border=border, alpha=232, radius=6, width=2)
+
+        title = selected.get("title") or state.get("active_cocoon_name") or "Cocoon facility fabric"
+        self._blit_text(title, (x + 14, y + 10), self._theme["text"], "title", max_width=w - 28)
+        self._blit_text(selected.get("route") or "route pending", (x + 14, y + 34), self._theme["cyan"], "xs", max_width=w - 28)
+        self._blit_text(selected.get("teaches") or "semantic/reward surface", (x + 14, y + 52), (189, 205, 190), "xs", max_width=w - 28)
+
+        status = selected.get("status", "watching")
+        status_color = self._status_color(status)
+        pygame.draw.circle(self._screen, status_color, (x + 18, y + h - 22), int(5 + 2 * pulse))
+        self._blit_text(f"status {status}", (x + 30, y + h - 29), status_color, "sm", max_width=140)
+        self._blit_text(f"blocker {selected.get('blocker', 'none')}", (x + 170, y + h - 28), self._theme["muted"], "xs", max_width=w - 190)
+        afk = surface.get("afk") if isinstance(surface.get("afk"), dict) else {}
+        if afk:
+            afk_color = self._theme["green"] if afk.get("enabled") else self._theme["muted"]
+            text = f"afk {str(afk.get('status', 'off'))} worker {afk.get('worker', 'idle')} cycles {afk.get('cycles', 0)}"
+            self._blit_text(text, (x + 14, y + 72), afk_color, "xs", max_width=max(180, w - 32))
+
+        metrics = [
+            ("vocab", state.get("vocabulary_size", 0), self._theme["teal"]),
+            ("relations", state.get("knowledge_relations", 0), self._theme["cyan"]),
+            ("cycles", state.get("cycles", 0), self._theme["amber"]),
+            ("catch/miss", f"{sphere.get('collective_catches', 0)}/{sphere.get('collective_misses', 0)}", self._theme["green"]),
+            ("caps", diagnostics.get("capability_count", len(surface.get("capabilities", []) or [])), (222, 201, 118)),
+        ]
+        card_w = max(86, min(122, (w - 32) // len(metrics)))
+        card_x = x + w - (card_w + 6) * len(metrics) - 8
+        for idx, (label, value, color) in enumerate(metrics):
+            self._draw_metric_card((card_x + idx * (card_w + 6), y + h - 58, card_w, 48), label, value, color)
+
+    def _draw_lattice_graph(self, rect: tuple[int, int, int, int], surface: dict[str, Any], pulse: float):
+        x, y, w, h = rect
+        self._draw_panel(rect, fill=(6, 12, 17), border=self._theme["line"], alpha=222, radius=6)
+        self._blit_text("CASCADE-LATTICE / FACILITY LINEAGE", (x + 12, y + 10), self._theme["teal"], "sm", max_width=w - 24)
+        facility_map = surface.get("facility_map") if isinstance(surface.get("facility_map"), dict) else {}
+        nodes = facility_map.get("nodes") if isinstance(facility_map.get("nodes"), list) else []
+        edges = facility_map.get("edges") if isinstance(facility_map.get("edges"), list) else []
+        if not nodes:
+            groups = sorted({str(cap.get("group")) for cap in surface.get("capabilities", []) if isinstance(cap, dict) and cap.get("group")})
+            nodes = [{"id": "authority", "label": "Authority", "type": "router", "status": "ready"}] + [
+                {"id": group, "label": group.title(), "type": "capability", "status": "ready"} for group in groups[:14]
+            ]
+            edges = [{"from": "authority", "to": node["id"], "label": "route"} for node in nodes[1:]]
+
+        nodes = nodes[:22]
+        node_by_id = {str(node.get("id")): node for node in nodes if isinstance(node, dict)}
+        cx = x + w // 2
+        cy = y + h // 2 + 8
+        radius = max(72, min(w, h) // 2 - 34)
+        positions: dict[str, tuple[int, int]] = {}
+        if "authority" in node_by_id:
+            positions["authority"] = (cx, cy)
+        for idx, node_id in enumerate([nid for nid in node_by_id if nid != "authority"]):
+            angle = -math.pi / 2 + idx * (math.tau / max(1, len(node_by_id) - 1))
+            wobble = 1.0 + 0.04 * math.sin(time.time() * 2 + idx)
+            positions[node_id] = (int(cx + math.cos(angle) * radius * wobble), int(cy + math.sin(angle) * radius * wobble))
+
+        for edge in edges[:40]:
+            if not isinstance(edge, dict):
+                continue
+            source = str(edge.get("from", ""))
+            target = str(edge.get("to", ""))
+            if source in positions and target in positions:
+                color = (28, 68, 74)
+                pygame.draw.line(self._screen, color, positions[source], positions[target], 1)
+
+        selected_key = str(surface.get("selected_key") or "")
+        for node_id, node in node_by_id.items():
+            px, py = positions.get(node_id, (cx, cy))
+            status_color = self._status_color(node.get("status"))
+            active = node_id == selected_key or str(node.get("label", "")).lower() in selected_key
+            node_r = 13 if node_id == "authority" else 9
+            if active:
+                pygame.draw.circle(self._screen, (*self._theme["amber"],), (px, py), node_r + int(4 * pulse), 2)
+            pygame.draw.circle(self._screen, status_color, (px, py), node_r)
+            pygame.draw.circle(self._screen, (2, 8, 10), (px, py), max(3, node_r - 5))
+            label = str(node.get("label") or node_id)
+            self._blit_text(label, (px - 42, py + node_r + 4), self._theme["muted"], "xs", max_width=84)
+
+    def _draw_context_heat(self, rect: tuple[int, int, int, int], surface: dict[str, Any], pulse: float):
+        x, y, w, h = rect
+        self._draw_panel(rect, fill=(7, 13, 18), border=self._theme["line"], alpha=222, radius=6)
+        self._blit_text("CONTEXT / WEALTH HEAT", (x + 12, y + 10), self._theme["cyan"], "sm", max_width=w - 24)
+        caps = [cap for cap in surface.get("capabilities", []) if isinstance(cap, dict)]
+        events = [event for event in surface.get("events", []) if isinstance(event, dict)]
+        lessons = [lesson for lesson in surface.get("lessons", []) if isinstance(lesson, dict)]
+        groups: dict[str, int] = {}
+        for cap in caps:
+            group = str(cap.get("group") or "other")
+            groups[group] = groups.get(group, 0) + 1
+        values = list(groups.values()) or [1]
+        max_value = max(values)
+        grid_x = x + 14
+        grid_y = y + 38
+        cell = max(12, min(22, (w - 30) // 10))
+        for row in range(6):
+            for col in range(10):
+                idx = row * 10 + col
+                base = values[idx % len(values)] / max(1, max_value)
+                event_boost = 0.25 if idx < len(events) else 0.0
+                lesson_boost = 0.18 if idx < len(lessons) else 0.0
+                heat = min(1.0, base * 0.55 + event_boost + lesson_boost + 0.08 * pulse)
+                color = (
+                    int(20 + 40 * heat),
+                    int(46 + 160 * heat),
+                    int(58 + 118 * heat),
+                )
+                pygame.draw.rect(self._screen, color, (grid_x + col * cell, grid_y + row * cell, cell - 2, cell - 2), border_radius=2)
+
+        label_y = grid_y + 6 * cell + 12
+        for idx, (group, count) in enumerate(sorted(groups.items(), key=lambda item: (-item[1], item[0]))[:5]):
+            yy = label_y + idx * 18
+            self._blit_text(group, (x + 14, yy), self._theme["muted"], "xs", max_width=max(70, w // 2 - 18))
+            bar_w = max(28, w - 110)
+            pygame.draw.rect(self._screen, (16, 26, 30), (x + w - bar_w - 12, yy + 3, bar_w, 7), border_radius=3)
+            pygame.draw.rect(self._screen, self._theme["teal"], (x + w - bar_w - 12, yy + 3, int(bar_w * count / max(1, max_value)), 7), border_radius=3)
+            self._blit_text(count, (x + w - 34, yy - 2), self._theme["text"], "xs", max_width=28)
+
+    def _risk_color(self, cap: dict[str, Any]) -> tuple[int, int, int]:
+        risk = str(cap.get("risk_class") or "").lower()
+        if risk == "external":
+            return self._theme["amber"]
+        if risk == "overclock" or cap.get("destructive"):
+            return self._theme["red"]
+        if cap.get("mutates"):
+            return self._theme["cyan"]
+        return self._theme["green"]
+
+    def _draw_facility_controller(self, rect: tuple[int, int, int, int], surface: dict[str, Any], pulse: float):
+        x, y, w, h = rect
+        self._draw_panel(rect, fill=(4, 9, 12), border=(37, 70, 68), alpha=232, radius=6)
+        self._blit_text("PRIMARY PROCESS CONTROLLER / ALL FACILITIES", (x + 12, y + 9), self._theme["teal"], "sm", max_width=w - 24)
+        self._blit_text("click facility to select | side buttons run/study/sequence | mutating/external routes stay visibly marked", (x + 12, y + 27), self._theme["muted"], "xs", max_width=w - 24)
+
+        caps = [cap for cap in surface.get("capabilities", []) if isinstance(cap, dict)]
+        if not caps:
+            caps = [
+                {"key": label.lower().replace(" ", "_"), "label": label, "group": "runtime", "risk_class": "inspect"}
+                for label in self._action_labels
+            ]
+        selected_key = str(surface.get("selected_key") or "")
+        group_order = ["diagnostics", "memory", "persistence", "language", "reasoning", "compound", "action", "games", "external", "overclock"]
+        grouped: dict[str, list[dict[str, Any]]] = {}
+        for cap in caps:
+            grouped.setdefault(str(cap.get("group") or "other"), []).append(cap)
+        ordered_groups = [group for group in group_order if group in grouped] + sorted(group for group in grouped if group not in group_order)
+        ordered_caps = []
+        for group in ordered_groups:
+            ordered_caps.extend(sorted(grouped[group], key=lambda cap: str(cap.get("key") or cap.get("label"))))
+
+        top = y + 48
+        available_h = max(40, h - 58)
+        cols = 4 if w >= 680 else 3 if w >= 520 else 2
+        gap = 6
+        chip_h = 18
+        rows = max(1, available_h // (chip_h + 4))
+        max_items = cols * rows
+        chip_w = (w - 24 - gap * (cols - 1)) // cols
+
+        for idx, cap in enumerate(ordered_caps[:max_items]):
+            col = idx // rows
+            row = idx % rows
+            cx = x + 12 + col * (chip_w + gap)
+            cy = top + row * (chip_h + 4)
+            key = str(cap.get("key") or "")
+            active = key == selected_key
+            color = self._risk_color(cap)
+            fill = (16, 26, 24) if active else (8, 15, 17)
+            border = color if active else (28, 48, 50)
+            self._draw_panel((cx, cy, chip_w, chip_h), fill=fill, border=border, alpha=225, radius=3, width=2 if active else 1)
+            marker = "*" if cap.get("mutates") else "!" if cap.get("destructive") else ">"
+            label = f"{marker} {cap.get('label') or key}"
+            self._blit_text(label, (cx + 5, cy + 4), color if active else self._theme["text"], "xs", max_width=chip_w - 10)
+            self._register_button((cx, cy, chip_w, chip_h), {"type": "select_cap", "key": key})
+
+        if len(ordered_caps) > max_items:
+            hidden = len(ordered_caps) - max_items
+            self._blit_text(f"+ {hidden} more facilities hidden at this window size; use fullscreen for full grid", (x + 12, y + h - 16), self._theme["amber"], "xs", max_width=w - 24)
+
+    def _event_line(self, item: dict[str, Any]) -> str:
+        name = item.get("name") or item.get("kind") or item.get("type") or item.get("stage") or "event"
+        status = item.get("status") or item.get("ok") or item.get("result") or ""
+        keys = item.get("keys")
+        data = item.get("data")
+        if not keys and isinstance(data, dict):
+            keys = ", ".join(list(data.keys())[:5])
+        age = self._age_text(item.get("time") or item.get("timestamp"))
+        status_text = str(status) if status != "" else "seen"
+        return f"[{age:>3}] {name}: {status_text} {keys or ''}".strip()
+
+    def _draw_terminal_feed(self, rect: tuple[int, int, int, int], surface: dict[str, Any], limit: int = 14):
+        x, y, w, h = rect
+        self._draw_panel(rect, fill=(3, 8, 10), border=(34, 58, 52), alpha=232, radius=6)
+        self._blit_text("OPERATION TAPE", (x + 12, y + 9), self._theme["green"], "sm", max_width=w - 24)
+        rows = []
+        for source in ("history", "events", "lessons"):
+            values = surface.get(source)
+            if isinstance(values, list):
+                rows.extend(item for item in values if isinstance(item, dict))
+        rows = rows[: max(1, limit)]
+        line_y = y + 30
+        line_h = 16
+        for idx, row in enumerate(rows):
+            yy = line_y + idx * line_h
+            if yy + line_h > y + h - 6:
+                break
+            color = self._status_color(row.get("status") or row.get("kind") or row.get("type"))
+            pygame.draw.rect(self._screen, (8, 18, 18), (x + 10, yy - 1, w - 20, line_h), border_radius=2)
+            self._blit_text(self._event_line(row), (x + 16, yy + 1), color if idx == 0 else self._theme["muted"], "xs", max_width=w - 32)
+        if not rows:
+            self._blit_text("No event data yet. Prime cache with P or run a capability.", (x + 16, line_y), self._theme["muted"], "xs", max_width=w - 32)
+
+    def _draw_games_view(self, pulse: float, slow_pulse: float):
+        surface = self._operational_surface or {}
+        x, y, w, h = self._main_rect()
+        self._draw_mode_tabs(x, y, w)
+        y += 34
+        h -= 34
+
+        hero_w = max(430, int(w * 0.62))
+        hero_h = h
+        self._draw_panel((x, y, hero_w, hero_h), fill=(4, 10, 14), border=self._theme["cyan"], alpha=226, radius=6)
+        self._blit_text("SPHERE ARENA LIVE GAME RECONSTRUCTION", (x + 14, y + 12), self._theme["cyan"], "sm", max_width=hero_w - 28)
+        sphere_rect = (x + 14, y + 38, hero_w - 28, max(260, hero_h - 168))
+        sphere = surface.get("sphere") if isinstance(surface.get("sphere"), dict) else {}
+        self._draw_sphere_reconstruction(sphere_rect, sphere, pulse)
+        stats_y = sphere_rect[1] + sphere_rect[3] + 12
+        stat_lines = [
+            f"frames {sphere.get('frames_run', sphere.get('frames_requested', 0))} / requested {sphere.get('frames_requested', 0)}",
+            f"catches {sphere.get('collective_catches', 0)}  misses {sphere.get('collective_misses', 0)}  streak {sphere.get('best_streak', sphere.get('streak', 0))}",
+            f"receipt {self._short_hash(sphere.get('receipt'))}",
+            "frame source: authoritative headless state; raw frame relay appears here when emitted",
+        ]
+        for idx, line in enumerate(stat_lines):
+            self._blit_text(line, (x + 18, stats_y + idx * 18), self._theme["muted"] if idx != 1 else self._theme["green"], "xs", max_width=hero_w - 36)
+
+        cards_x = x + hero_w + 10
+        cards_w = w - hero_w - 10
+        games = [game for game in surface.get("games", []) if isinstance(game, dict)]
+        if not games:
+            games = [{"key": "sphere", "label": "Sphere", "status": "ready"}]
+        card_h = max(86, (h - 10 * (min(len(games), 5) - 1)) // max(1, min(len(games), 5)))
+        for idx, game in enumerate(games[:5]):
+            cy = y + idx * (card_h + 10)
+            self._draw_game_lane_card((cards_x, cy, cards_w, card_h), game, pulse)
+
+    def _draw_sphere_reconstruction(self, rect: tuple[int, int, int, int], sphere: dict[str, Any], pulse: float):
+        x, y, w, h = rect
+        self._draw_panel(rect, fill=(2, 7, 10), border=(26, 54, 68), alpha=245, radius=5)
+        cx = x + w // 2
+        cy = y + h // 2
+        radius = min(w, h) // 2 - 24
+        pygame.draw.circle(self._screen, (21, 50, 64), (cx, cy), radius, 2)
+        for step in range(1, 4):
+            pygame.draw.circle(self._screen, (10, 28, 38), (cx, cy), int(radius * step / 4), 1)
+        for angle in range(0, 180, 30):
+            dx = int(math.cos(math.radians(angle)) * radius)
+            dy = int(math.sin(math.radians(angle)) * radius)
+            pygame.draw.line(self._screen, (10, 28, 38), (cx - dx, cy - dy), (cx + dx, cy + dy), 1)
+
+        render_state = sphere.get("render_state") if isinstance(sphere.get("render_state"), dict) else {}
+        organisms = render_state.get("organisms") if isinstance(render_state.get("organisms"), list) else []
+        balls = render_state.get("balls") if isinstance(render_state.get("balls"), list) else []
+        tail = sphere.get("render_tail") if isinstance(sphere.get("render_tail"), list) else []
+
+        def project(pos: Any) -> tuple[int, int]:
+            try:
+                px, py, pz = float(pos[0]), float(pos[1]), float(pos[2])
+            except Exception:
+                return cx, cy
+            scale = radius / 2.35
+            return int(cx + (px + 0.25 * pz) * scale), int(cy + (py - 0.15 * pz) * scale)
+
+        for sample in tail[-12:]:
+            if not isinstance(sample, dict):
+                continue
+            for ball in sample.get("balls", []) if isinstance(sample.get("balls"), list) else []:
+                pos = project(ball.get("position"))
+                pygame.draw.circle(self._screen, (106, 86, 28), pos, 2)
+
+        if not organisms:
+            count = max(2, min(8, len(sphere.get("rewards", {}) or {}) or 4))
+            organisms = [{"idx": idx, "theta": idx * math.tau / count + pulse, "phi": math.pi / 2, "alive": True} for idx in range(count)]
+        for idx, org in enumerate(organisms):
+            if "position" in org:
+                pos = project(org.get("position"))
+            else:
+                theta = float(org.get("theta", idx))
+                phi = float(org.get("phi", math.pi / 2))
+                pos = (int(cx + math.cos(theta) * math.sin(phi) * radius * 0.82), int(cy + math.sin(theta) * math.sin(phi) * radius * 0.82))
+            color = self._theme["green"] if org.get("alive", True) else self._theme["red"]
+            pygame.draw.circle(self._screen, color, pos, 6)
+            pygame.draw.circle(self._screen, (234, 244, 236), pos, 8, 1)
+            self._blit_text(str(org.get("idx", idx)), (pos[0] + 8, pos[1] - 6), self._theme["muted"], "xs", max_width=28)
+
+        if not balls:
+            balls = [{"position": (math.cos(time.time()) * 1.5, math.sin(time.time() * 0.9) * 1.5, 0.5), "active": True}]
+        for ball in balls:
+            pos = project(ball.get("position"))
+            pygame.draw.circle(self._screen, self._theme["amber"], pos, int(7 + 3 * pulse))
+            pygame.draw.circle(self._screen, (255, 245, 170), pos, 12, 1)
+
+    def _draw_game_lane_card(self, rect: tuple[int, int, int, int], game: dict[str, Any], pulse: float):
+        x, y, w, h = rect
+        status = game.get("status", "unknown")
+        color = self._status_color(status)
+        self._draw_panel(rect, fill=(8, 14, 18), border=color, alpha=224, radius=6)
+        self._blit_text(str(game.get("label") or game.get("key") or "Game").upper(), (x + 12, y + 10), color, "sm", max_width=w - 24)
+        self._blit_text(f"status {status}", (x + 12, y + 30), self._theme["muted"], "xs", max_width=w - 24)
+        details = game.get("details") if isinstance(game.get("details"), list) else []
+        for idx, detail in enumerate(details[:3]):
+            self._blit_text(detail, (x + 12, y + 49 + idx * 16), self._theme["text"] if idx == 0 else self._theme["muted"], "xs", max_width=w - 24)
+        if game.get("active"):
+            pygame.draw.circle(self._screen, color, (x + w - 18, y + 18), int(5 + 2 * pulse))
+
+    def _draw_feed_view(self, pulse: float, slow_pulse: float):
+        surface = self._operational_surface or {}
+        x, y, w, h = self._main_rect()
+        self._draw_mode_tabs(x, y, w)
+        y += 34
+        h -= 34
+        left_w = max(420, int(w * 0.66))
+        self._draw_terminal_feed((x, y, left_w, h), surface, limit=max(18, h // 16 - 3))
+
+        right_x = x + left_w + 10
+        right_w = w - left_w - 10
+        top_h = max(130, int(h * 0.38))
+        self._draw_receipt_panel((right_x, y, right_w, top_h), surface)
+        self._draw_lessons_panel((right_x, y + top_h + 10, right_w, h - top_h - 10), surface)
+
+    def _draw_receipt_panel(self, rect: tuple[int, int, int, int], surface: dict[str, Any]):
+        x, y, w, h = rect
+        self._draw_panel(rect, fill=(7, 12, 17), border=self._theme["cyan"], alpha=224, radius=6)
+        self._blit_text("RECEIPT CHAIN", (x + 12, y + 10), self._theme["cyan"], "sm", max_width=w - 24)
+        receipts = [item for item in surface.get("receipts", []) if isinstance(item, dict)]
+        if not receipts:
+            state = surface.get("state") if isinstance(surface.get("state"), dict) else {}
+            receipts = [{"kind": "state", "receipt": state.get("last_receipt")}]
+        for idx, item in enumerate(receipts[: max(1, (h - 34) // 18)]):
+            yy = y + 34 + idx * 18
+            self._blit_text(str(item.get("kind") or "receipt"), (x + 12, yy), self._theme["muted"], "xs", max_width=max(60, w // 3))
+            self._blit_text(self._short_hash(item.get("receipt"), 28), (x + max(82, w // 3), yy), self._theme["green"], "xs", max_width=w - max(96, w // 3) - 8)
+
+    def _draw_lessons_panel(self, rect: tuple[int, int, int, int], surface: dict[str, Any]):
+        x, y, w, h = rect
+        self._draw_panel(rect, fill=(8, 13, 15), border=self._theme["green"], alpha=224, radius=6)
+        self._blit_text("LESSONS / CUES", (x + 12, y + 10), self._theme["green"], "sm", max_width=w - 24)
+        lessons = [item for item in surface.get("lessons", []) if isinstance(item, dict)]
+        feed_reports = [item for item in surface.get("feed_reports", []) if isinstance(item, dict)]
+        rows = lessons[:8] + feed_reports[:4]
+        for idx, item in enumerate(rows[: max(1, (h - 34) // 18)]):
+            yy = y + 34 + idx * 18
+            text = item.get("text") or item.get("note") or item.get("title") or item.get("kind") or item.get("source") or str(item)[:80]
+            self._blit_text(text, (x + 12, yy), self._theme["muted"], "xs", max_width=w - 24)
+        if not rows:
+            self._blit_text("No lessons surfaced yet.", (x + 12, y + 34), self._theme["muted"], "xs", max_width=w - 24)
+
+    def _draw_glass_right_panel(self, pulse: float, slow_pulse: float):
+        surface = self._operational_surface or {}
+        panel_x = self.GAME_W + self._panel_gap
+        x = panel_x + 8
+        y = self._top_bar_h + 10
+        w = self.width - x - 10
+        h = self.height - y - 10
+        self._draw_panel((x, y, w, h), fill=(6, 11, 16), border=self._theme["line"], alpha=230, radius=6)
+        self._blit_text("LIVE RELAY", (x + 12, y + 10), self._theme["teal"], "title", max_width=w - 24)
+        mode = self._glass_view_mode.upper()
+        self._blit_text(f"view {mode} | pygame tui relay", (x + 12, y + 36), self._theme["muted"], "xs", max_width=w - 24)
+
+        selected = surface.get("selected") if isinstance(surface.get("selected"), dict) else {}
+        afk = surface.get("afk") if isinstance(surface.get("afk"), dict) else {}
+        controls_y = y + h - 78
+        sy = y + 62
+        self._draw_panel((x + 10, sy, w - 20, 76), fill=(9, 17, 22), border=self._status_color(selected.get("status")), alpha=224, radius=5)
+        self._blit_text(str(selected.get("title") or "selected facility"), (x + 20, sy + 10), self._theme["text"], "sm", max_width=w - 40)
+        self._blit_text(str(selected.get("last_keys") or "keys pending"), (x + 20, sy + 30), self._theme["muted"], "xs", max_width=w - 40)
+        self._blit_text(f"receipt {selected.get('receipt', 'none')}", (x + 20, sy + 48), self._theme["green"], "xs", max_width=w - 40)
+        if afk:
+            afk_color = self._theme["green"] if afk.get("enabled") else self._theme["muted"]
+            self._blit_text(f"afk {afk.get('status', 'off')} | {afk.get('worker', 'idle')} | {afk.get('cycles', 0)}", (x + 20, sy + 62), afk_color, "xs", max_width=w - 40)
+
+        dy = sy + 88
+        self._draw_command_bank((x + 10, dy, w - 20, 112), pulse)
+        dy += 124
+        self._draw_compact_decision_list((x + 10, dy, w - 20, 132), pulse)
+        dy += 144
+        self._draw_receipt_panel((x + 10, dy, w - 20, 96), surface)
+        dy += 108
+        games = [game for game in surface.get("games", []) if isinstance(game, dict)]
+        game_h = max(76, min(108, controls_y - dy - 12))
+        self._draw_panel((x + 10, dy, w - 20, game_h), fill=(9, 14, 18), border=self._theme["amber"], alpha=220, radius=5)
+        self._blit_text("GAME LANES", (x + 20, dy + 9), self._theme["amber"], "sm", max_width=w - 40)
+        for idx, game in enumerate(games[:4]):
+            yy = dy + 30 + idx * 18
+            self._blit_text(str(game.get("label") or game.get("key")), (x + 20, yy), self._status_color(game.get("status")), "xs", max_width=90)
+            self._blit_text(str(game.get("status")), (x + 120, yy), self._theme["muted"], "xs", max_width=w - 150)
+        self._draw_panel((x + 10, controls_y, w - 20, 66), fill=(10, 12, 9), border=(90, 82, 45), alpha=218, radius=5)
+        self._blit_text("CONTROLS", (x + 20, controls_y + 8), self._theme["amber"], "sm", max_width=w - 40)
+        self._blit_text("O ops  G games  F feed  V cycle", (x + 20, controls_y + 30), self._theme["text"], "xs", max_width=w - 40)
+        self._blit_text("Enter/P/I/N/E/L/M/S/A/D/R/Q", (x + 20, controls_y + 46), self._theme["muted"], "xs", max_width=w - 40)
+
+    def _draw_command_bank(self, rect: tuple[int, int, int, int], pulse: float):
+        x, y, w, h = rect
+        self._draw_panel(rect, fill=(9, 14, 13), border=(48, 64, 42), alpha=222, radius=5)
+        self._blit_text("PROCESS BUTTONS", (x + 10, y + 8), self._theme["amber"], "sm", max_width=w - 20)
+        commands = [
+            ("RUN", "run_selected", self._theme["green"]),
+            ("STUDY", "study_selected", self._theme["cyan"]),
+            ("NEXT", "followup", self._theme["teal"]),
+            ("SEQ", "sequence", (202, 186, 98)),
+            ("AFK", "afk", (112, 230, 150)),
+            ("PRIME", "prime", self._theme["amber"]),
+            ("SPHERE", "sphere", (226, 182, 82)),
+            ("AUTO", "autopilot", (114, 190, 246)),
+            ("HARDEN", "harden", (230, 122, 92)),
+            ("REFRESH", "refresh", self._theme["muted"]),
+            ("LOGS", "logs", (174, 198, 224)),
+            ("MAP", "map", (174, 198, 224)),
+            ("FULL", "fullscreen", self._theme["teal"]),
+        ]
+        cols = 5
+        gap = 5
+        btn_w = max(54, (w - 20 - gap * (cols - 1)) // cols)
+        btn_h = 20
+        start_y = y + 30
+        for idx, (label, action, color) in enumerate(commands):
+            col = idx % cols
+            row = idx // cols
+            bx = x + 10 + col * (btn_w + gap)
+            by = start_y + row * (btn_h + 5)
+            if by + btn_h > y + h - 4:
+                break
+            self._draw_panel((bx, by, btn_w, btn_h), fill=(11, 19, 19), border=color, alpha=226, radius=3)
+            self._blit_text(label, (bx + 6, by + 5), color, "xs", max_width=btn_w - 12)
+            self._register_button((bx, by, btn_w, btn_h), {"type": "command", "command": action})
+
+    def _draw_compact_decision_list(self, rect: tuple[int, int, int, int], pulse: float):
+        x, y, w, h = rect
+        self._draw_panel(rect, fill=(8, 13, 18), border=self._theme["cyan"], alpha=220, radius=5)
+        self._blit_text("CAPABILITY LATTICE", (x + 10, y + 8), self._theme["cyan"], "sm", max_width=w - 20)
+        if self._action_probs is None:
+            self._blit_text("No capability probabilities yet.", (x + 10, y + 32), self._theme["muted"], "xs", max_width=w - 20)
+            return
+        max_actions = min(len(self._action_probs), 8)
+        max_idx = int(np.argmax(self._action_probs)) if len(self._action_probs) else 0
+        bar_w = max(70, w - 138)
+        for i in range(max_actions):
+            p = float(self._action_probs[i]) if i < len(self._action_probs) else 0.0
+            label = self._action_labels[i] if i < len(self._action_labels) else f"A{i}"
+            yy = y + 32 + i * 16
+            color = self._theme["amber"] if i == self._chosen_action else self._theme["teal"] if i == max_idx else self._theme["muted"]
+            self._blit_text(label, (x + 10, yy), color, "xs", max_width=86)
+            pygame.draw.rect(self._screen, (18, 28, 34), (x + 102, yy + 4, bar_w, 6), border_radius=3)
+            pygame.draw.rect(self._screen, color, (x + 102, yy + 4, int(bar_w * min(1.0, max(0.0, p))), 6), border_radius=3)
+            self._blit_text(f"{p:.0%}", (x + 108 + bar_w, yy - 2), self._theme["text"], "xs", max_width=34)
 
     def _draw_cocoon_overlay(self, pulse: float):
         """Draw Cocoon route, cache, and sequence telemetry from real API data."""
