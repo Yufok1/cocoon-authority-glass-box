@@ -1,0 +1,23 @@
+# Cocoon core runtime dependencies
+# Install with: pip install -r requirements.txt
+#
+# This file is intentionally the living Python cocoon core. Extension faculties
+# are listed in requirements-faculties.txt because several need native graphics,
+# simulator, or export build stacks on Termux/Android.
+
+numpy>=1.21.0
+torch>=2.0.0
+
+# Primary GUI/API surfaces
+flask>=3.0.0
+websockets>=11.0
+
+# Headless game/RL logic
+gymnasium>=0.29.0
+
+# Provenance and quine discipline
+cascade-lattice>=0.8.3
+quinesmith>=0.1.1
+
+# OpenGL Python bindings; actual visual use still needs a working GL/SDL stack.
+PyOpenGL>=3.1.7

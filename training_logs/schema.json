@@ -1,0 +1,33 @@
+{
+  "version": "1.0",
+  "format": "jsonl",
+  "default_path": "training_logs/live_learning_trace.jsonl",
+  "purpose": "Post-export language/RL learning trace for Council coaches and clone-from-live-state.",
+  "required_fields": [
+    "timestamp",
+    "event_type",
+    "stage",
+    "input",
+    "target",
+    "output",
+    "reward",
+    "score",
+    "vocab_size",
+    "training_step"
+  ],
+  "event_types": [
+    "connector_seed",
+    "echo_trial",
+    "role_transform_trial",
+    "turn_exchange_trial",
+    "game_language_binding",
+    "clone_dialogue_arena_turn",
+    "rl_transition",
+    "runtime_save"
+  ],
+  "coach_contract": {
+    "speaker": false,
+    "judge": true,
+    "note": "The outside coach scores Cocoon outputs; it should not dump raw prompt scaffolds into training text."
+  }
+}

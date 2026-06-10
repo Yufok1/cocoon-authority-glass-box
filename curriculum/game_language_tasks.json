@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "stage": 5,
+  "name": "game_language_binding",
+  "objective": "Attach language to RL observations, actions, and reward.",
+  "bindings": [
+    {
+      "state_hint": "ball distance small",
+      "phrase": "ball near",
+      "preferred_action_words": [
+        "catch",
+        "move"
+      ]
+    },
+    {
+      "state_hint": "ball x negative",
+      "phrase": "move left",
+      "preferred_action_words": [
+        "left"
+      ]
+    },
+    {
+      "state_hint": "ball x positive",
+      "phrase": "move right",
+      "preferred_action_words": [
+        "right"
+      ]
+    },
+    {
+      "state_hint": "positive reward",
+      "phrase": "catch good",
+      "reward_target": 1.0
+    },
+    {
+      "state_hint": "negative reward",
+      "phrase": "miss bad",
+      "reward_target": -1.0
+    },
+    {
+      "state_hint": "high rolling reward",
+      "phrase": "reward high",
+      "reward_target": 0.8
+    }
+  ],
+  "arena": {
+    "stage": 6,
+    "name": "clone_dialogue_arena",
+    "instruction": "Run original vs clone with one target per exchange; score each turn before training."
+  }
+}

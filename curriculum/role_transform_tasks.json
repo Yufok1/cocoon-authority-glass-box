@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "stage": 3,
+  "name": "role_transform_game",
+  "objective": "Preserve speaker/listener perspective across short replies.",
+  "transforms": [
+    {
+      "input": "I am original",
+      "target": "you are original"
+    },
+    {
+      "input": "I am clone",
+      "target": "you are clone"
+    },
+    {
+      "input": "you see me",
+      "target": "I see you"
+    },
+    {
+      "input": "we are together",
+      "target": "we are together"
+    }
+  ],
+  "score_fields": [
+    "exact_match",
+    "pronoun_role_preserved",
+    "short_response"
+  ]
+}

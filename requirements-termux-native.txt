@@ -1,0 +1,6 @@
+# Install these with Termux pkg, not pip:
+#
+# pkg install python-torch python-onnxruntime cmake ninja
+#
+# If using pygame/SDL faculties, SDL packages may also be required:
+# pkg install sdl2 sdl2-image sdl2-mixer sdl2-ttf

@@ -1,0 +1,25 @@
+{
+  "version": "1.0",
+  "coach_role": "reward_judge_not_speaker",
+  "positive_rewards": {
+    "connector_use": 0.15,
+    "short_response_compliance": 0.2,
+    "exact_phrase_copy_early": 0.4,
+    "role_preservation": 0.35,
+    "game_state_word_alignment": 0.3
+  },
+  "penalties": {
+    "repetition_loop": -0.5,
+    "malformed_prompt_residue": -0.6,
+    "json_or_tool_syntax_when_not_training_tools": -0.6,
+    "long_unrequested_response": -0.2,
+    "role_confusion": -0.35
+  },
+  "blocked_residue_examples": [
+    "toolcocoonlistargs",
+    "functioncall",
+    "assistantto=functions",
+    "jsonschema",
+    "systemprompt"
+  ]
+}

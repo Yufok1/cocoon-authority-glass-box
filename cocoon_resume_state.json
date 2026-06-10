@@ -1,0 +1,89 @@
+{
+  "updated": "2026-06-10",
+  "package_dir": "/data/data/com.termux/files/home/downloads/cocoon_cognition_agency_package",
+  "authority": {
+    "url": "http://127.0.0.1:8765/",
+    "pidfile": "mira_kite_authority_runtime/authority_launch.pid",
+    "last_known_pid": 27511
+  },
+  "primary_commands": {
+    "default_launch": "./cocoon",
+    "authority_no_open": "./cocoon app --host 127.0.0.1 --port 8765 --no-open",
+    "glass": "export DISPLAY=:0 && ./cocoon glass",
+    "doctor": "./cocoon doctor --json",
+    "audit": "./cocoon audit",
+    "mcp": "./cocoon mcp"
+  },
+  "ready": [
+    "core_agent",
+    "authority_api",
+    "pygame_glass_dummy_smoke",
+    "sphere",
+    "gymnasium",
+    "matplotlib",
+    "scipy",
+    "PyFlyt_package",
+    "pettingzoo",
+    "drone_adapter_files"
+  ],
+  "blocked": {
+    "model_export": "onnx import fails with native symbol error in onnx_cpp2py_export.abi3.so",
+    "drone_visual": "pybullet wheel build failed; numba blocked by llvmlite unsupported platform android",
+    "tmrl": "operator disabled; do not pursue",
+    "termux_pkg_manager": "xdg-utils post-install failure leaves Qt/OpenCV packages unconfigured"
+  },
+  "gui_controls": {
+    "select": "Left/Right",
+    "run_selected": "Enter",
+    "prime_cache": "P",
+    "study_route": "I",
+    "run_followup": "N",
+    "run_sequence": "E",
+    "logs": "L",
+    "map": "M",
+    "sphere": "S or Space",
+    "autopilot": "A or T",
+    "harden": "D",
+    "refresh": "R",
+    "quit": "Esc or Q"
+  },
+  "browser_app": {
+    "url": "http://127.0.0.1:8765/",
+    "surfaces": [
+      "Capability Contract Matrix from /api/capability_manifest",
+      "Live Operation Relay for button, route, method, payload, latency, output keys, receipt, state delta, errors, history",
+      "Canvas overlay for active operation route/status/keys/delta"
+    ],
+    "served_markers_verified": [
+      "Capability Contract Matrix",
+      "contractGrid",
+      "renderContractMatrix",
+      "Live Operation Relay",
+      "runCapabilityContract"
+    ]
+  },
+  "verification_commands": [
+    "python -m py_compile cocoon_ops.py cocoon_capabilities.py mira_kite_authority.py cocoon_glass_phone.py glass_box_phone/display.py cocoon_drone_adapter.py",
+    "./cocoon doctor --json",
+    "./cocoon audit",
+    "./cocoon capabilities run facilities",
+    "SDL_VIDEODRIVER=dummy ./cocoon glass --max-seconds 2 --fps 5 --poll-seconds 1"
+  ],
+  "mcp_eval": {
+    "transport": "stdio JSON-RPC",
+    "tools_verified": [
+      "doctor",
+      "list_cocoons",
+      "persistence",
+      "capabilities",
+      "run_capability",
+      "start_job",
+      "job_status",
+      "job_logs",
+      "stop_job",
+      "eval"
+    ],
+    "fixed": "eval default cocoon_path now uses PACKAGE_DIR/cocoon_cognition_agency.py",
+    "last_eval_result": "4 cases run, 4 passed"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "generated": null,
+  "mode": "ENSEMBLE",
+  "ensemble_size": 2,
+  "organism_names": [
+    "16525dfc6c33419b",
+    "0c019d24a56b0086"
+  ],
+  "training_config": {
+    "learning_rate": 0.001,
+    "batch_size": 32,
+    "gamma": 0.99,
+    "epsilon": 0.1,
+    "epsilon_decay": 0.995,
+    "epsilon_min": 0.01,
+    "rl_loss_weight": 0.8,
+    "language_loss_weight": 0.1,
+    "concept_loss_weight": 0.1,
+    "buffer_size": 10000
+  },
+  "data_compressed": true,
+  "includes_readme": true,
+  "includes_tmrl_adapter": true,
+  "language_curriculum": {
+    "files": [
+      "curriculum/connector_words.json",
+      "curriculum/dialogue_frames.json",
+      "curriculum/game_language_tasks.json",
+      "curriculum/reward_rubric.json",
+      "curriculum/role_transform_tasks.json",
+      "training_logs/schema.json"
+    ],
+    "training_log_schema": "training_logs/schema.json"
+  },
+  "unpack_outputs": {
+    "onnx": "ensemble.onnx",
+    "weights": "ensemble_weights.pt"
+  }
+}

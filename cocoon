@@ -1,0 +1,104 @@
+#!/usr/bin/env sh
+set -eu
+
+PACKAGE_DIR="/data/data/com.termux/files/home/downloads/cocoon_cognition_agency_package"
+PYTHON_BIN="${PYTHON_BIN:-python}"
+COCOON_FILE="${COCOON_FILE:-$PACKAGE_DIR/cocoon_cognition_agency.py}"
+
+usage() {
+  cat <<'EOF'
+Usage: cocoon [command] [args...]
+
+Commands:
+  app [--host HOST] [--port PORT]      Launch and open the local app UI.
+  gui [--host HOST] [--port PORT]      Alias for app.
+  authority [--host HOST] [--port PORT] Launch the authority server in foreground.
+  doctor [--json]                      Report prerequisites, resources, persistence.
+  info                                 Show cocoon metadata.
+  readme                               Print embedded cocoon readme.
+  eval [--delay-ms N] [--max-failures N]
+                                       Run real smoke evals with receipt-capable reports.
+  capabilities [list|run|tour]         List/run every Authority capability route.
+  agent [brief|status|next|manifest|inspect] Agent-facing navigator with suggested next routes.
+  audit                                Check capability/docs/agent affordances.
+  playbook                             Print the complete operator playbook.
+  skills                               Print the intuitive skill cookbook.
+  recipes                              Alias for skills.
+  chat [args...]                       Run cocoon chat mode.
+  sphere [args...]                     Run sphere training mode.
+  gym [args...]                        Run Gymnasium mode.
+  mcp                                  Run stdio MCP bridge.
+  glass [args...]                      Run real pygame Glass Box phone UI.
+  raw [args...]                        Pass args directly to cocoon_cognition_agency.py.
+
+Default: cocoon app --host 127.0.0.1 --port 8765
+For LAN phone access from another device, use: cocoon app --host 0.0.0.0
+EOF
+}
+
+command="${1:-app}"
+if [ "$#" -gt 0 ]; then
+  shift
+fi
+
+case "$command" in
+  app|gui)
+    exec "$PYTHON_BIN" "$PACKAGE_DIR/cocoon_launch.py" --cocoon "$COCOON_FILE" "$@"
+    ;;
+  authority)
+    exec "$PYTHON_BIN" "$PACKAGE_DIR/cocoon_launch.py" --foreground --cocoon "$COCOON_FILE" "$@"
+    ;;
+  doctor)
+    exec "$PYTHON_BIN" "$PACKAGE_DIR/cocoon_doctor.py" "$@"
+    ;;
+  info)
+    exec "$PYTHON_BIN" "$COCOON_FILE" --mode info "$@"
+    ;;
+  readme)
+    exec "$PYTHON_BIN" "$COCOON_FILE" --readme "$@"
+    ;;
+  eval)
+    exec "$PYTHON_BIN" "$PACKAGE_DIR/cocoon_eval.py" --cocoon "$COCOON_FILE" "$@"
+    ;;
+  capabilities)
+    exec "$PYTHON_BIN" "$PACKAGE_DIR/cocoon_capabilities.py" "$@"
+    ;;
+  agent)
+    exec "$PYTHON_BIN" "$PACKAGE_DIR/cocoon_agent_console.py" "$@"
+    ;;
+  audit)
+    exec "$PYTHON_BIN" "$PACKAGE_DIR/cocoon_affordance_audit.py" "$@"
+    ;;
+  playbook)
+    exec sed -n '1,260p' "$PACKAGE_DIR/COCOON_OPERATOR_PLAYBOOK.md"
+    ;;
+  skills|recipes)
+    exec sed -n '1,260p' "$PACKAGE_DIR/COCOON_SKILLS_COOKBOOK.md"
+    ;;
+  chat)
+    exec "$PYTHON_BIN" "$COCOON_FILE" --mode chat "$@"
+    ;;
+  sphere)
+    exec "$PYTHON_BIN" "$COCOON_FILE" --mode sphere "$@"
+    ;;
+  gym)
+    exec "$PYTHON_BIN" "$COCOON_FILE" --mode gym "$@"
+    ;;
+  mcp)
+    exec "$PYTHON_BIN" "$PACKAGE_DIR/cocoon_mcp_stdio.py" "$@"
+    ;;
+  glass)
+    exec "$PYTHON_BIN" "$PACKAGE_DIR/cocoon_glass_phone.py" "$@"
+    ;;
+  raw)
+    exec "$PYTHON_BIN" "$COCOON_FILE" "$@"
+    ;;
+  help|-h|--help)
+    usage
+    ;;
+  *)
+    echo "Unknown cocoon command: $command" >&2
+    usage >&2
+    exit 2
+    ;;
+esac

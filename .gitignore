@@ -1,0 +1,27 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Runtime state and generated logs
+cocoon_host_runtime/
+mira_kite_authority_runtime/
+eval_reports/
+ui_native_state/
+facility_save/
+
+# Local/editor/system files
+.DS_Store
+*.swp
+*.swo
+*.tmp
+*.log
+
+# Large generated model/checkpoint artifacts
+*.onnx
+*.pt
+*.pth
+*.ckpt

@@ -1,0 +1,4226 @@
+{
+  "cascade": {
+    "version": "0.8.3",
+    "root": "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade",
+    "modules": [
+      {
+        "module": "cascade.analysis.metrics",
+        "functions": [
+          {
+            "name": "classify_metric",
+            "signature": "(name: str) -> cascade.analysis.metrics.MetricCategory",
+            "doc": "Classify a metric name into its category."
+          }
+        ],
+        "classes": [
+          {
+            "name": "Anomaly",
+            "signature": "(metric_name: str, category: cascade.analysis.metrics.MetricCategory, event_id: str, timestamp: float, value: float, expected_range: Tuple[float, float], deviation_std: float, severity: str) -> None",
+            "doc": "A detected anomaly in the metric stream.",
+            "methods": []
+          },
+          {
+            "name": "Correlation",
+            "signature": "(metric_a: str, metric_b: str, category_a: cascade.analysis.metrics.MetricCategory, category_b: cascade.analysis.metrics.MetricCategory, coefficient: float, strength: str, direction: str) -> None",
+            "doc": "A detected correlation between two metrics.",
+            "methods": []
+          },
+          {
+            "name": "MetricCategory",
+            "signature": "(*values)",
+            "doc": "Industry-standard neural network metric categories.",
+            "methods": []
+          },
+          {
+            "name": "MetricHealthSpec",
+            "signature": "(name: str, category: cascade.analysis.metrics.MetricCategory, healthy_min: Optional[float] = None, healthy_max: Optional[float] = None, critical_min: Optional[float] = None, critical_max: Optional[float] = None, expected_trend: Optional[str] = None) -> None",
+            "doc": "Specification for healthy metric ranges.",
+            "methods": [
+              {
+                "name": "is_critical",
+                "signature": "(self, value: float) -> bool"
+              },
+              {
+                "name": "is_healthy",
+                "signature": "(self, value: float) -> bool"
+              }
+            ]
+          },
+          {
+            "name": "MetricSeries",
+            "signature": "(name: str, category: cascade.analysis.metrics.MetricCategory = <MetricCategory.UNKNOWN: 12>, values: List[float] = <factory>, timestamps: List[float] = <factory>, event_ids: List[str] = <factory>) -> None",
+            "doc": "A time series of a single metric with category awareness.",
+            "methods": [
+              {
+                "name": "health_status",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "is_anomaly",
+                "signature": "(self, threshold_std: float = 2.0) -> bool"
+              },
+              {
+                "name": "moving_average",
+                "signature": "(self, window: int = 5) -> Optional[float]"
+              },
+              {
+                "name": "rate_of_change",
+                "signature": "(self, window: int = 5) -> Optional[float]"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "trend",
+                "signature": "(self, window: int = 10) -> str"
+              }
+            ]
+          },
+          {
+            "name": "MetricsEngine",
+            "signature": "(graph: Optional[cascade.core.graph.CausationGraph] = None)",
+            "doc": "Quantification engine for the event stream.",
+            "methods": [
+              {
+                "name": "get_category_coverage",
+                "signature": "(self) -> Dict[str, bool]"
+              },
+              {
+                "name": "get_convergence_metrics",
+                "signature": "(self) -> Dict[str, cascade.analysis.metrics.MetricSeries]"
+              },
+              {
+                "name": "get_correlations",
+                "signature": "(self, min_coefficient: float = 0.5) -> List[cascade.analysis.metrics.Correlation]"
+              },
+              {
+                "name": "get_cross_category_correlations",
+                "signature": "(self) -> List[cascade.analysis.metrics.Correlation]"
+              },
+              {
+                "name": "get_gradient_metrics",
+                "signature": "(self) -> Dict[str, cascade.analysis.metrics.MetricSeries]"
+              },
+              {
+                "name": "get_memory_metrics",
+                "signature": "(self) -> Dict[str, cascade.analysis.metrics.MetricSeries]"
+              },
+              {
+                "name": "get_metric",
+                "signature": "(self, name: str) -> Optional[cascade.analysis.metrics.MetricSeries]"
+              },
+              {
+                "name": "get_metrics_by_category",
+                "signature": "(self, category: cascade.analysis.metrics.MetricCategory) -> Dict[str, cascade.analysis.metrics.MetricSeries]"
+              },
+              {
+                "name": "get_training_metrics",
+                "signature": "(self) -> Dict[str, cascade.analysis.metrics.MetricSeries]"
+              },
+              {
+                "name": "health_summary",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "ingest",
+                "signature": "(self, event: cascade.core.event.Event) -> Dict[str, cascade.analysis.metrics.MetricSeries]"
+              },
+              {
+                "name": "metrics_by_category_summary",
+                "signature": "(self) -> Dict[str, Dict[str, Any]]"
+              },
+              {
+                "name": "quick_status",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "summary",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "triage",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "ThresholdCrossing",
+            "signature": "(metric_name: str, category: cascade.analysis.metrics.MetricCategory, event_id: str, timestamp: float, old_value: float, new_value: float, threshold: float, direction: str) -> None",
+            "doc": "A metric crossing a significant threshold.",
+            "methods": []
+          }
+        ],
+        "doc": "Cascade Analysis - Metrics Engine.",
+        "error": null
+      },
+      {
+        "module": "cascade.analysis.tracer",
+        "functions": [],
+        "classes": [
+          {
+            "name": "CascadePrediction",
+            "signature": "(source_event: cascade.core.event.Event, predicted_effects: List[Dict[str, Any]], risk_score: float = 0.0, intervention_points: List[str] = <factory>, narrative: str = '') -> None",
+            "doc": "Prediction of likely cascade from an event.",
+            "methods": []
+          },
+          {
+            "name": "ImpactAnalysis",
+            "signature": "(source_event: cascade.core.event.Event, effects: List[cascade.core.event.Event], chains: List[cascade.core.event.CausationChain], total_impact_count: int = 0, severity_score: float = 0.0, narrative: str = '') -> None",
+            "doc": "Results of an impact/forward analysis.",
+            "methods": []
+          },
+          {
+            "name": "RootCauseAnalysis",
+            "signature": "(target_event: cascade.core.event.Event, root_causes: List[cascade.core.event.Event], chains: List[cascade.core.event.CausationChain], deepest_depth: int = 0, narrative: str = '') -> None",
+            "doc": "Results of a root cause analysis.",
+            "methods": []
+          },
+          {
+            "name": "Tracer",
+            "signature": "(graph: cascade.core.graph.CausationGraph)",
+            "doc": "Bidirectional causation tracer.",
+            "methods": [
+              {
+                "name": "analyze_impact",
+                "signature": "(self, event_id: str, max_depth: int = 1000) -> cascade.analysis.tracer.ImpactAnalysis"
+              },
+              {
+                "name": "find_root_causes",
+                "signature": "(self, event_id: str, max_depth: int = 1000) -> cascade.analysis.tracer.RootCauseAnalysis"
+              },
+              {
+                "name": "predict_cascade",
+                "signature": "(self, event_id: str) -> cascade.analysis.tracer.CascadePrediction"
+              },
+              {
+                "name": "trace_backwards",
+                "signature": "(self, event_id: str, max_depth: int = 1000) -> List[cascade.core.event.CausationChain]"
+              },
+              {
+                "name": "trace_forwards",
+                "signature": "(self, event_id: str, max_depth: int = 1000) -> List[cascade.core.event.CausationChain]"
+              }
+            ]
+          }
+        ],
+        "doc": "Cascade Analysis - Bidirectional Causation Tracer.",
+        "error": null
+      },
+      {
+        "module": "cascade.bridge",
+        "functions": [
+          {
+            "name": "create_gradio_gateway",
+            "signature": "()",
+            "doc": "Create a Gradio interface that serves as IPFS gateway.\nSuitable for HuggingFace Spaces deployment."
+          }
+        ],
+        "classes": [
+          {
+            "name": "LatticeServer",
+            "signature": "(lattice_dir: pathlib._local.Path = None)",
+            "doc": "Serves lattice content over IPFS-compatible protocols.",
+            "methods": [
+              {
+                "name": "announce_to_dht",
+                "signature": "(self, ipfs_api: str = '/ip4/127.0.0.1/tcp/5001')"
+              },
+              {
+                "name": "get_gateway_response",
+                "signature": "(self, cid: str) -> tuple"
+              },
+              {
+                "name": "list_cids",
+                "signature": "(self) -> list"
+              },
+              {
+                "name": "resolve",
+                "signature": "(self, cid: str) -> Optional[bytes]"
+              },
+              {
+                "name": "start_gateway",
+                "signature": "(self, host: str = '0.0.0.0', port: int = 8080)"
+              }
+            ]
+          }
+        ],
+        "doc": "HuggingFace \u2192 IPFS Bridge",
+        "error": null
+      },
+      {
+        "module": "cascade.cli_main",
+        "functions": [
+          {
+            "name": "cmd_analyze",
+            "signature": "(args)",
+            "doc": "Analyze a log file or folder."
+          },
+          {
+            "name": "cmd_chains",
+            "signature": "(args)",
+            "doc": "List all chains in the lattice."
+          },
+          {
+            "name": "cmd_entities",
+            "signature": "(args)",
+            "doc": "Run entity resolution on a file."
+          },
+          {
+            "name": "cmd_export",
+            "signature": "(args)",
+            "doc": "Export lattice or chain to file."
+          },
+          {
+            "name": "cmd_fingerprint",
+            "signature": "(args)",
+            "doc": "Generate model fingerprint."
+          },
+          {
+            "name": "cmd_hold_info",
+            "signature": "(args)",
+            "doc": "Show HOLD usage information."
+          },
+          {
+            "name": "cmd_hold_status",
+            "signature": "(args)",
+            "doc": "Show HOLD system status."
+          },
+          {
+            "name": "cmd_ingest",
+            "signature": "(args)",
+            "doc": "Ingest logs/files into the lattice."
+          },
+          {
+            "name": "cmd_init",
+            "signature": "(args)",
+            "doc": "Show initialization instructions."
+          },
+          {
+            "name": "cmd_inspect",
+            "signature": "(args)",
+            "doc": "Inspect a specific observation by merkle root."
+          },
+          {
+            "name": "cmd_list",
+            "signature": "(args)",
+            "doc": "List recent observations."
+          },
+          {
+            "name": "cmd_observe",
+            "signature": "(args)",
+            "doc": "Manually observe a model interaction."
+          },
+          {
+            "name": "cmd_pii",
+            "signature": "(args)",
+            "doc": "Scan for PII in a file."
+          },
+          {
+            "name": "cmd_pin",
+            "signature": "(args)",
+            "doc": "Pin observation to IPFS."
+          },
+          {
+            "name": "cmd_provenance",
+            "signature": "(args)",
+            "doc": "Show data provenance for a file/dataset."
+          },
+          {
+            "name": "cmd_proxy",
+            "signature": "(args)",
+            "doc": "Start the CASCADE proxy server."
+          },
+          {
+            "name": "cmd_stats",
+            "signature": "(args)",
+            "doc": "Show lattice statistics with Rich panels."
+          },
+          {
+            "name": "cmd_version",
+            "signature": "(args)",
+            "doc": "Show version."
+          },
+          {
+            "name": "cmd_watch",
+            "signature": "(args)",
+            "doc": "Watch live observations in real-time."
+          },
+          {
+            "name": "main",
+            "signature": "()",
+            "doc": "Main CLI entry point."
+          }
+        ],
+        "classes": [],
+        "doc": "CASCADE CLI - Full-featured Rich TUI for cascade-ai.",
+        "error": null
+      },
+      {
+        "module": "cascade.core.adapter",
+        "functions": [],
+        "classes": [
+          {
+            "name": "SignalPattern",
+            "signature": "(pattern_type: str, component: str, event_type: str, extractor: Optional[Callable[[Any], Dict[str, Any]]] = None, confidence: float = 0.0, match_count: int = 0) -> None",
+            "doc": "A learned pattern for interpreting signals.",
+            "methods": []
+          },
+          {
+            "name": "SymbioticAdapter",
+            "signature": "()",
+            "doc": "Self-interpreting adapter that converges to any signal format.",
+            "methods": [
+              {
+                "name": "interpret",
+                "signature": "(self, signal: Any) -> cascade.core.event.Event"
+              }
+            ]
+          }
+        ],
+        "doc": "Cascade Core - Symbiotic Adapter.",
+        "error": null
+      },
+      {
+        "module": "cascade.core.event",
+        "functions": [],
+        "classes": [
+          {
+            "name": "CausationChain",
+            "signature": "(events: List[cascade.core.event.Event], links: List[cascade.core.event.CausationLink], total_strength: float = 1.0, depth: int = 0, narrative: str = '') -> None",
+            "doc": "A chain of causal events from origin to destination.",
+            "methods": []
+          },
+          {
+            "name": "CausationLink",
+            "signature": "(from_event: str, to_event: str, causation_type: str, strength: float = 1.0, explanation: str = '', metrics_involved: List[str] = <factory>) -> None",
+            "doc": "A causal relationship between two events.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "Event",
+            "signature": "(timestamp: float, component: str, event_type: str, data: Dict[str, Any] = <factory>, event_id: str = <factory>, source_signal: Optional[Any] = None) -> None",
+            "doc": "A discrete event in the causation graph.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          }
+        ],
+        "doc": "Cascade Core - Event and CausationLink primitives.",
+        "error": null
+      },
+      {
+        "module": "cascade.core.graph",
+        "functions": [],
+        "classes": [
+          {
+            "name": "CausationGraph",
+            "signature": "()",
+            "doc": "A directed graph of causal relationships between events.",
+            "methods": [
+              {
+                "name": "add_event",
+                "signature": "(self, event: cascade.core.event.Event) -> None"
+              },
+              {
+                "name": "add_link",
+                "signature": "(self, link: cascade.core.event.CausationLink) -> None"
+              },
+              {
+                "name": "find_path",
+                "signature": "(self, from_event: str, to_event: str) -> Optional[List[str]]"
+              },
+              {
+                "name": "get_all_links",
+                "signature": "(self) -> List[cascade.core.event.CausationLink]"
+              },
+              {
+                "name": "get_causes",
+                "signature": "(self, event_id: str) -> List[cascade.core.event.Event]"
+              },
+              {
+                "name": "get_component_connections",
+                "signature": "(self) -> Dict[str, Dict[str, float]]"
+              },
+              {
+                "name": "get_effects",
+                "signature": "(self, event_id: str) -> List[cascade.core.event.Event]"
+              },
+              {
+                "name": "get_event",
+                "signature": "(self, event_id: str) -> Optional[cascade.core.event.Event]"
+              },
+              {
+                "name": "get_events_by_component",
+                "signature": "(self, component: str) -> List[cascade.core.event.Event]"
+              },
+              {
+                "name": "get_events_by_type",
+                "signature": "(self, event_type: str) -> List[cascade.core.event.Event]"
+              },
+              {
+                "name": "get_leaf_events",
+                "signature": "(self) -> List[cascade.core.event.Event]"
+              },
+              {
+                "name": "get_link",
+                "signature": "(self, from_event: str, to_event: str) -> Optional[cascade.core.event.CausationLink]"
+              },
+              {
+                "name": "get_recent_events",
+                "signature": "(self, count: int = 100) -> List[cascade.core.event.Event]"
+              },
+              {
+                "name": "get_root_events",
+                "signature": "(self) -> List[cascade.core.event.Event]"
+              },
+              {
+                "name": "get_stats",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          }
+        ],
+        "doc": "Cascade Core - Causation Graph Engine.",
+        "error": null
+      },
+      {
+        "module": "cascade.core.provenance",
+        "functions": [
+          {
+            "name": "compare_chains",
+            "signature": "(chain_a: cascade.core.provenance.ProvenanceChain, chain_b: cascade.core.provenance.ProvenanceChain) -> Dict[str, Any]",
+            "doc": "Compare two provenance chains."
+          },
+          {
+            "name": "compute_merkle_root",
+            "signature": "(hashes: List[str]) -> str",
+            "doc": "Compute Merkle root from list of hashes."
+          },
+          {
+            "name": "export_chain_for_audit",
+            "signature": "(chain: cascade.core.provenance.ProvenanceChain, filepath: str) -> None",
+            "doc": "Export chain to file for external audit."
+          },
+          {
+            "name": "hash_input",
+            "signature": "(data: Any) -> str",
+            "doc": "Hash input data (text, tokens, images, etc)."
+          },
+          {
+            "name": "hash_model",
+            "signature": "(model) -> str",
+            "doc": "Hash entire model state."
+          },
+          {
+            "name": "hash_params",
+            "signature": "(module) -> str",
+            "doc": "Hash a module's parameters (weights, biases)."
+          },
+          {
+            "name": "hash_tensor",
+            "signature": "(tensor, sample_size: int = 1000) -> str",
+            "doc": "Compute deterministic hash of tensor state."
+          },
+          {
+            "name": "import_chain_for_audit",
+            "signature": "(filepath: str) -> cascade.core.provenance.ProvenanceChain",
+            "doc": "Import chain from audit file."
+          },
+          {
+            "name": "verify_chain",
+            "signature": "(chain: cascade.core.provenance.ProvenanceChain) -> Tuple[bool, str]",
+            "doc": "Verify a provenance chain's integrity."
+          }
+        ],
+        "classes": [
+          {
+            "name": "ProvenanceChain",
+            "signature": "(session_id: str, model_id: str, model_hash: str, input_hash: str, output_hash: Optional[str] = None, records: Dict[str, cascade.core.provenance.ProvenanceRecord] = <factory>, external_roots: List[str] = <factory>, merkle_root: Optional[str] = None, created_at: float = <factory>, finalized: bool = False) -> None",
+            "doc": "Complete provenance chain for a forward pass.",
+            "methods": [
+              {
+                "name": "add_record",
+                "signature": "(self, record: cascade.core.provenance.ProvenanceRecord) -> None"
+              },
+              {
+                "name": "finalize",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "get_lineage",
+                "signature": "(self, layer_name: str) -> List[cascade.core.provenance.ProvenanceRecord]"
+              },
+              {
+                "name": "link_external",
+                "signature": "(self, external_merkle_root: str, source_id: str = None) -> None"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_json",
+                "signature": "(self, indent: int = 2) -> str"
+              },
+              {
+                "name": "verify",
+                "signature": "(self) -> Tuple[bool, Optional[str]]"
+              }
+            ]
+          },
+          {
+            "name": "ProvenanceRecord",
+            "signature": "(layer_name: str, layer_idx: int, state_hash: str, parent_hashes: List[str], params_hash: Optional[str] = None, shape: List[int] = <factory>, dtype: str = 'float32', stats: Dict[str, float] = <factory>, execution_order: int = 0, timestamp: float = <factory>, merkle_depth: int = 0, merkle_path: List[str] = <factory>) -> None",
+            "doc": "Immutable record of a single layer's activation state.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "ProvenanceTracker",
+            "signature": "(model, model_id: str, log_dir: str = './logs')",
+            "doc": "Tracks provenance during model forward pass.",
+            "methods": [
+              {
+                "name": "close_tape",
+                "signature": "(self)"
+              },
+              {
+                "name": "finalize_session",
+                "signature": "(self, output_data: Any = None) -> cascade.core.provenance.ProvenanceChain"
+              },
+              {
+                "name": "get_tape_path",
+                "signature": "(self)"
+              },
+              {
+                "name": "start_session",
+                "signature": "(self, input_data: Any) -> str"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE // PROVENANCE ENGINE\nCryptographic lineage tracking for neural network activations.",
+        "error": null
+      },
+      {
+        "module": "cascade.core.web3_bridge",
+        "functions": [
+          {
+            "name": "attest_inference",
+            "signature": "(chain: cascade.core.provenance.ProvenanceChain, chain_name: str = 'ethereum') -> cascade.core.web3_bridge.Web3Attestation",
+            "doc": "One-liner to create attestation from provenance chain."
+          },
+          {
+            "name": "base58_encode",
+            "signature": "(data: bytes) -> str",
+            "doc": "Base58 encoding (Bitcoin alphabet)."
+          },
+          {
+            "name": "chain_to_ipfs_ready",
+            "signature": "(chain: cascade.core.provenance.ProvenanceChain) -> Tuple[bytes, str]",
+            "doc": "Prepare provenance chain for IPFS upload."
+          },
+          {
+            "name": "compute_ipfs_cid_v0",
+            "signature": "(data: bytes) -> str",
+            "doc": "Compute IPFS CID v0 (Qm...) for data."
+          },
+          {
+            "name": "compute_ipfs_cid_v1",
+            "signature": "(data: bytes) -> str",
+            "doc": "Compute IPFS CID v1 (bafy...) for data."
+          },
+          {
+            "name": "export_for_web3",
+            "signature": "(chain: cascade.core.provenance.ProvenanceChain, chain_name: str = 'ethereum', include_full_chain: bool = True) -> Dict[str, Any]",
+            "doc": "Export provenance chain in Web3-ready format."
+          },
+          {
+            "name": "generate_nft_metadata",
+            "signature": "(chain: cascade.core.provenance.ProvenanceChain, image_url: Optional[str] = None, animation_url: Optional[str] = None) -> Dict[str, Any]",
+            "doc": "Generate ERC-721 compatible metadata for a provenance NFT."
+          },
+          {
+            "name": "generate_verification_page",
+            "signature": "(attestation: cascade.core.web3_bridge.Web3Attestation, chain: Optional[cascade.core.provenance.ProvenanceChain] = None) -> str",
+            "doc": "Generate an HTML verification page for an attestation."
+          },
+          {
+            "name": "get_chain_config",
+            "signature": "(chain_name: str) -> Dict[str, Any]",
+            "doc": "Get configuration for a specific blockchain."
+          },
+          {
+            "name": "prepare_for_signing",
+            "signature": "(attestation: cascade.core.web3_bridge.Web3Attestation, chain_name: str = 'ethereum') -> Dict[str, Any]",
+            "doc": "Prepare attestation for wallet signing (MetaMask, etc)."
+          },
+          {
+            "name": "quick_verify",
+            "signature": "(merkle_root: str, layer_hashes: List[str]) -> bool",
+            "doc": "Quick verification that layer hashes produce expected Merkle root."
+          },
+          {
+            "name": "verify_signature",
+            "signature": "(attestation: cascade.core.web3_bridge.Web3Attestation, signature: str, expected_signer: str) -> Tuple[bool, str]",
+            "doc": "Verify an EIP-712 signature."
+          }
+        ],
+        "classes": [
+          {
+            "name": "Web3Attestation",
+            "signature": "(model_hash: str, input_hash: str, output_hash: str, merkle_root: str, session_id: str, timestamp: int, layer_count: int, ipfs_cid: Optional[str] = None, arweave_id: Optional[str] = None, signature: Optional[str] = None, signer: Optional[str] = None, chain_id: int = 1, contract_address: Optional[str] = None, tx_hash: Optional[str] = None) -> None",
+            "doc": "Blockchain-ready attestation of AI inference provenance.",
+            "methods": [
+              {
+                "name": "to_contract_args",
+                "signature": "(self) -> Tuple"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_eip712_message",
+                "signature": "(self, domain: Optional[Dict] = None) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_json",
+                "signature": "(self) -> str"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE // WEB3 BRIDGE\nBlockchain integration for AI provenance.",
+        "error": null
+      },
+      {
+        "module": "cascade.data.croissant",
+        "functions": [
+          {
+            "name": "export_to_croissant",
+            "signature": "(graph: cascade.data.provenance.ProvenanceGraph, name: str = None, description: str = None, **kwargs) -> Dict[str, Any]",
+            "doc": "Convenience function to export provenance to Croissant."
+          }
+        ],
+        "classes": [
+          {
+            "name": "CroissantExporter",
+            "signature": "(graph: cascade.data.provenance.ProvenanceGraph)",
+            "doc": "Export provenance to Croissant JSON-LD format.",
+            "methods": [
+              {
+                "name": "export",
+                "signature": "(self, name: str = None, description: str = None, license_url: str = None, citation: str = None, url: str = None, include_provenance: bool = True) -> Dict[str, Any]"
+              },
+              {
+                "name": "save",
+                "signature": "(self, path: str, **kwargs)"
+              },
+              {
+                "name": "to_json",
+                "signature": "(self, **kwargs) -> str"
+              }
+            ]
+          }
+        ],
+        "doc": "Croissant Exporter",
+        "error": null
+      },
+      {
+        "module": "cascade.data.entities",
+        "functions": [
+          {
+            "name": "create_model_agent",
+            "signature": "(model_id: str, version: str = None) -> cascade.data.entities.Agent",
+            "doc": "Create an agent representing an ML model."
+          },
+          {
+            "name": "create_system_agent",
+            "signature": "(name: str = 'cascade', version: str = '1.0.0') -> cascade.data.entities.Agent",
+            "doc": "Create a system agent for automated operations."
+          },
+          {
+            "name": "create_user_agent",
+            "signature": "(username: str, org: str = None) -> cascade.data.entities.Agent",
+            "doc": "Create an agent representing a user."
+          }
+        ],
+        "classes": [
+          {
+            "name": "Activity",
+            "signature": "(id: str, activity_type: cascade.data.entities.ActivityType, name: str, started_at: Optional[float] = None, ended_at: Optional[float] = None, inputs: List[str] = <factory>, outputs: List[str] = <factory>, agent_id: Optional[str] = None, parameters: Dict[str, Any] = <factory>, attributes: Dict[str, Any] = <factory>) -> None",
+            "doc": "An activity in the provenance graph.",
+            "methods": [
+              {
+                "name": "add_input",
+                "signature": "(self, entity_id: str)"
+              },
+              {
+                "name": "add_output",
+                "signature": "(self, entity_id: str)"
+              },
+              {
+                "name": "end",
+                "signature": "(self)"
+              },
+              {
+                "name": "start",
+                "signature": "(self)"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_prov_n",
+                "signature": "(self) -> str"
+              }
+            ]
+          },
+          {
+            "name": "ActivityType",
+            "signature": "(*values)",
+            "doc": "Types of dataset activities.",
+            "methods": []
+          },
+          {
+            "name": "Agent",
+            "signature": "(id: str, agent_type: cascade.data.entities.AgentType, name: str, version: Optional[str] = None, parent_agent_id: Optional[str] = None, identifier: Optional[str] = None, attributes: Dict[str, Any] = <factory>, created_at: float = <factory>) -> None",
+            "doc": "An agent in the provenance graph.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_prov_n",
+                "signature": "(self) -> str"
+              }
+            ]
+          },
+          {
+            "name": "AgentType",
+            "signature": "(*values)",
+            "doc": "Types of agents.",
+            "methods": []
+          },
+          {
+            "name": "DatasetEntity",
+            "signature": "(id: str, name: str, content_hash: Optional[str] = None, schema_hash: Optional[str] = None, version: Optional[str] = None, previous_version: Optional[str] = None, source_type: str = 'unknown', source_uri: Optional[str] = None, license_id: Optional[str] = None, license_url: Optional[str] = None, record_count: Optional[int] = None, size_bytes: Optional[int] = None, splits: Dict[str, int] = <factory>, attributes: Dict[str, Any] = <factory>, created_at: float = <factory>) -> None",
+            "doc": "A dataset entity in the provenance graph.",
+            "methods": [
+              {
+                "name": "compute_hash",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_prov_n",
+                "signature": "(self) -> str"
+              }
+            ]
+          },
+          {
+            "name": "RelationType",
+            "signature": "(*values)",
+            "doc": "W3C PROV-O relationship types.",
+            "methods": []
+          },
+          {
+            "name": "Relationship",
+            "signature": "(relation_type: cascade.data.entities.RelationType, source_id: str, target_id: str, timestamp: float = <factory>, attributes: Dict[str, Any] = <factory>) -> None",
+            "doc": "A provenance relationship between two nodes.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_prov_n",
+                "signature": "(self) -> str"
+              }
+            ]
+          }
+        ],
+        "doc": "PROV-O Entities for Dataset Observation",
+        "error": null
+      },
+      {
+        "module": "cascade.data.hub",
+        "functions": [
+          {
+            "name": "pull_from_hub",
+            "signature": "(repo_id: str, token: str = None) -> Optional[cascade.data.provenance.ProvenanceGraph]",
+            "doc": "Convenience function to pull provenance from Hub."
+          },
+          {
+            "name": "push_to_hub",
+            "signature": "(graph: cascade.data.provenance.ProvenanceGraph, repo_id: str, token: str = None, private: bool = False) -> str",
+            "doc": "Convenience function to push provenance to Hub."
+          }
+        ],
+        "classes": [
+          {
+            "name": "AccountabilityBundle",
+            "signature": "(graph: cascade.data.provenance.ProvenanceGraph)",
+            "doc": "Complete W3C PROV-O accountability package.",
+            "methods": [
+              {
+                "name": "export",
+                "signature": "(self, output_dir: str)"
+              },
+              {
+                "name": "summary",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_activity_log",
+                "signature": "(self) -> List[Dict[str, Any]]"
+              },
+              {
+                "name": "to_agent_attributions",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_integrity_manifest",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_prov_n",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "to_prov_o_jsonld",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "HubIntegration",
+            "signature": "(token: str = None)",
+            "doc": "Integration with HuggingFace Hub for dataset provenance.",
+            "methods": [
+              {
+                "name": "get_dataset_provenance_url",
+                "signature": "(self, repo_id: str) -> str"
+              },
+              {
+                "name": "pull_provenance",
+                "signature": "(self, repo_id: str) -> Optional[cascade.data.provenance.ProvenanceGraph]"
+              },
+              {
+                "name": "push_provenance",
+                "signature": "(self, graph: cascade.data.provenance.ProvenanceGraph, repo_id: str, commit_message: str = 'Update provenance', private: bool = False, include_croissant: bool = True, full_accountability: bool = True) -> str"
+              },
+              {
+                "name": "update_dataset_card",
+                "signature": "(self, repo_id: str, graph: cascade.data.provenance.ProvenanceGraph) -> str"
+              }
+            ]
+          }
+        ],
+        "doc": "HuggingFace Hub Integration",
+        "error": null
+      },
+      {
+        "module": "cascade.data.license",
+        "functions": [
+          {
+            "name": "check_license_compatibility",
+            "signature": "(sources: List[Tuple[str, str]], target: Optional[str] = None) -> cascade.data.license.LicenseCompatibility",
+            "doc": "Convenience function to check license compatibility."
+          },
+          {
+            "name": "get_derived_license",
+            "signature": "(sources: List[str]) -> cascade.data.license.SPDXLicense",
+            "doc": "Get the appropriate license for a work derived from given sources."
+          },
+          {
+            "name": "get_license",
+            "signature": "(spdx_id: str) -> cascade.data.license.SPDXLicense",
+            "doc": "Get license by SPDX identifier."
+          }
+        ],
+        "classes": [
+          {
+            "name": "LicenseAnalyzer",
+            "signature": "()",
+            "doc": "Analyze license compatibility for dataset derivation.",
+            "methods": [
+              {
+                "name": "check_compatibility",
+                "signature": "(self, source_licenses: List[Tuple[str, str]], target_license: Optional[str] = None) -> cascade.data.license.LicenseCompatibility"
+              },
+              {
+                "name": "generate_attribution",
+                "signature": "(self, sources: List[Tuple[str, str, str]]) -> str"
+              }
+            ]
+          },
+          {
+            "name": "LicenseCategory",
+            "signature": "(*values)",
+            "doc": "License categories for compatibility analysis.",
+            "methods": []
+          },
+          {
+            "name": "LicenseCompatibility",
+            "signature": "(compatible: bool, derived_license: Optional[cascade.data.license.SPDXLicense] = None, issues: List[str] = <factory>, warnings: List[str] = <factory>, attribution_required: List[str] = <factory>) -> None",
+            "doc": "Result of license compatibility check.",
+            "methods": []
+          },
+          {
+            "name": "LicenseRestriction",
+            "signature": "(*values)",
+            "doc": "License restrictions that propagate to derivatives.",
+            "methods": []
+          },
+          {
+            "name": "SPDXLicense",
+            "signature": "(id: str, name: str, category: cascade.data.license.LicenseCategory = <LicenseCategory.UNKNOWN: 'unknown'>, restrictions: Set[cascade.data.license.LicenseRestriction] = <factory>, osi_approved: bool = False, fsf_libre: bool = False, url: Optional[str] = None) -> None",
+            "doc": "SPDX License Information.",
+            "methods": [
+              {
+                "name": "allows_commercial",
+                "signature": "(self) -> bool"
+              },
+              {
+                "name": "allows_derivatives",
+                "signature": "(self) -> bool"
+              },
+              {
+                "name": "requires_attribution",
+                "signature": "(self) -> bool"
+              },
+              {
+                "name": "requires_share_alike",
+                "signature": "(self) -> bool"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          }
+        ],
+        "doc": "SPDX License Tracking for CASCADE",
+        "error": null
+      },
+      {
+        "module": "cascade.data.live",
+        "functions": [
+          {
+            "name": "create_live_tracer",
+            "signature": "(observer=None, console: bool = False) -> cascade.data.live.LiveDocumentTracer",
+            "doc": "Create a live document tracer."
+          }
+        ],
+        "classes": [
+          {
+            "name": "ConsoleTraceRenderer",
+            "signature": "(show_snippets: bool = True, max_snippet_len: int = 80)",
+            "doc": "Simple console renderer for live document traces.",
+            "methods": [
+              {
+                "name": "render",
+                "signature": "(self, event: cascade.data.live.TraceEvent)"
+              }
+            ]
+          },
+          {
+            "name": "DocumentAssociation",
+            "signature": "(source: cascade.data.live.DocumentSpan, target: cascade.data.live.DocumentSpan, association_type: str = 'related', confidence: float = 1.0, reason: str = '') -> None",
+            "doc": "An association between two document spans.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "DocumentSpan",
+            "signature": "(document_id: str, document_name: str, field_name: str = '', row_index: int = -1, text: str = '', start_char: int = -1, end_char: int = -1, highlight_type: str = 'default', confidence: float = 1.0, metadata: Dict[str, Any] = <factory>) -> None",
+            "doc": "A span within a document being traced.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "LiveDocumentTracer",
+            "signature": "(observer=None, buffer_size: int = 1000, log_dir: str = './logs')",
+            "doc": "Real-time document tracing for live visualization.",
+            "methods": [
+              {
+                "name": "clear_buffer",
+                "signature": "(self)"
+              },
+              {
+                "name": "close_tape",
+                "signature": "(self)"
+              },
+              {
+                "name": "create_association",
+                "signature": "(self, source_doc_id: str, source_doc_name: str, source_text: str, target_doc_id: str, target_doc_name: str, target_text: str, association_type: str = 'related', confidence: float = 1.0, reason: str = '', **metadata)"
+              },
+              {
+                "name": "emit",
+                "signature": "(self, event: cascade.data.live.TraceEvent)"
+              },
+              {
+                "name": "emit_entity",
+                "signature": "(self, entity_id: str, source: str, text: str, index: int, side: str = 'a')"
+              },
+              {
+                "name": "emit_match",
+                "signature": "(self, doc_a_id: str, doc_b_id: str, score: float)"
+              },
+              {
+                "name": "emit_phase",
+                "signature": "(self, phase: str, progress: float, message: str = '')"
+              },
+              {
+                "name": "end_activity",
+                "signature": "(self, activity_id: str = None)"
+              },
+              {
+                "name": "entity_created",
+                "signature": "(self, entity_id: str, entity_name: str, record_count: int = None, **metadata)"
+              },
+              {
+                "name": "entity_derived",
+                "signature": "(self, derived_id: str, derived_name: str, source_ids: List[str], **metadata)"
+              },
+              {
+                "name": "export_associations",
+                "signature": "(self) -> List[Dict[str, Any]]"
+              },
+              {
+                "name": "export_session",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "export_timeline",
+                "signature": "(self) -> List[Dict[str, Any]]"
+              },
+              {
+                "name": "get_buffer",
+                "signature": "(self) -> List[cascade.data.live.TraceEvent]"
+              },
+              {
+                "name": "get_tape_path",
+                "signature": "(self) -> Optional[pathlib._local.Path]"
+              },
+              {
+                "name": "highlight_span",
+                "signature": "(self, document_id: str, document_name: str, text: str, start_char: int = -1, end_char: int = -1, field_name: str = '', row_index: int = -1, highlight_type: str = 'attention', confidence: float = 1.0, **metadata)"
+              },
+              {
+                "name": "link_created",
+                "signature": "(self, source_id: str, target_id: str, relationship_type: str, **metadata)"
+              },
+              {
+                "name": "on_event",
+                "signature": "(self, handler: Callable[[cascade.data.live.TraceEvent], NoneType])"
+              },
+              {
+                "name": "on_event_async",
+                "signature": "(self, handler: Callable[[cascade.data.live.TraceEvent], Any])"
+              },
+              {
+                "name": "remove_handler",
+                "signature": "(self, handler)"
+              },
+              {
+                "name": "report_progress",
+                "signature": "(self, progress: float, message: str = '', activity_id: str = None)"
+              },
+              {
+                "name": "start_activity",
+                "signature": "(self, activity_id: str, activity_name: str, activity_type: str = 'transform')"
+              },
+              {
+                "name": "stream",
+                "signature": "(self) -> Generator[cascade.data.live.TraceEvent, NoneType, NoneType]"
+              },
+              {
+                "name": "touch_document",
+                "signature": "(self, document_id: str, document_name: str, snippet: str = '', field_name: str = '', row_index: int = -1, highlight_type: str = 'default', confidence: float = 1.0, **metadata)"
+              }
+            ]
+          },
+          {
+            "name": "TraceEvent",
+            "signature": "(event_type: cascade.data.live.TraceEventType, timestamp: float = <factory>, activity_id: Optional[str] = None, activity_name: Optional[str] = None, activity_type: Optional[str] = None, spans: List[cascade.data.live.DocumentSpan] = <factory>, association: Optional[cascade.data.live.DocumentAssociation] = None, progress: Optional[float] = None, progress_message: Optional[str] = None, entity_id: Optional[str] = None, relationship_type: Optional[str] = None, metadata: Dict[str, Any] = <factory>) -> None",
+            "doc": "A single trace event for live document visualization.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_json",
+                "signature": "(self) -> str"
+              }
+            ]
+          },
+          {
+            "name": "TraceEventType",
+            "signature": "(*values)",
+            "doc": "Types of document trace events.",
+            "methods": []
+          }
+        ],
+        "doc": "Live Document Tracer",
+        "error": null
+      },
+      {
+        "module": "cascade.data.observer",
+        "functions": [],
+        "classes": [
+          {
+            "name": "DatasetObserver",
+            "signature": "(name: str = 'default', agent: cascade.data.entities.Agent = None)",
+            "doc": "Observer for dataset operations.",
+            "methods": [
+              {
+                "name": "check_license_compatibility",
+                "signature": "(self, entity_ids: List[str], target_license: str = None)"
+              },
+              {
+                "name": "export_provenance",
+                "signature": "(self) -> cascade.data.provenance.ProvenanceGraph"
+              },
+              {
+                "name": "generate_attribution",
+                "signature": "(self, entity_ids: List[str] = None) -> str"
+              },
+              {
+                "name": "get_derived_license",
+                "signature": "(self, entity_ids: List[str])"
+              },
+              {
+                "name": "observe_consume",
+                "signature": "(self, name: str, model_id: str = None, consume_type: str = 'train', agent: cascade.data.entities.Agent = None, **kwargs) -> Generator[cascade.data.observer.ObservationContext, NoneType, NoneType]"
+              },
+              {
+                "name": "observe_dataset",
+                "signature": "(self, dataset, name: str = None, source_type: str = None, source_uri: str = None, version: str = None, license_id: str = None, license_url: str = None, **kwargs) -> cascade.data.entities.DatasetEntity"
+              },
+              {
+                "name": "observe_entity_resolution",
+                "signature": "(self, name: str, model_id: str = None, threshold: float = None, agent: cascade.data.entities.Agent = None, **kwargs) -> Generator[cascade.data.observer.ObservationContext, NoneType, NoneType]"
+              },
+              {
+                "name": "observe_ingest",
+                "signature": "(self, name: str, source_uri: str = None, agent: cascade.data.entities.Agent = None, **kwargs) -> Generator[cascade.data.observer.ObservationContext, NoneType, NoneType]"
+              },
+              {
+                "name": "observe_transform",
+                "signature": "(self, name: str, transform_type: str = None, agent: cascade.data.entities.Agent = None, **kwargs) -> Generator[cascade.data.observer.ObservationContext, NoneType, NoneType]"
+              },
+              {
+                "name": "register_agent",
+                "signature": "(self, name: str, agent_type: str = 'software', version: str = None) -> cascade.data.entities.Agent"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "ObservationContext",
+            "signature": "(activity: cascade.data.entities.Activity, observer: 'DatasetObserver', _inputs: List[cascade.data.entities.DatasetEntity] = <factory>, _outputs: List[cascade.data.entities.DatasetEntity] = <factory>) -> None",
+            "doc": "Context for an ongoing observation.",
+            "methods": [
+              {
+                "name": "input",
+                "signature": "(self, dataset, name: str = None, **kwargs) -> cascade.data.entities.DatasetEntity"
+              },
+              {
+                "name": "output",
+                "signature": "(self, dataset, name: str = None, **kwargs) -> cascade.data.entities.DatasetEntity"
+              }
+            ]
+          }
+        ],
+        "doc": "Dataset Observer",
+        "error": null
+      },
+      {
+        "module": "cascade.data.pii",
+        "functions": [
+          {
+            "name": "quick_pii_check",
+            "signature": "(data, sample_size: int = 100) -> bool",
+            "doc": "Quick check if data contains any PII."
+          },
+          {
+            "name": "scan_for_pii",
+            "signature": "(data, sample_size: int = 1000, min_confidence: float = 0.5) -> cascade.data.pii.PIIScanResult",
+            "doc": "Convenience function to scan data for PII."
+          },
+          {
+            "name": "validate_iban",
+            "signature": "(iban: str) -> bool",
+            "doc": "Validate IBAN using MOD-97 checksum."
+          },
+          {
+            "name": "validate_luhn",
+            "signature": "(card_number: str) -> bool",
+            "doc": "Validate credit card using Luhn algorithm."
+          },
+          {
+            "name": "validate_ssn",
+            "signature": "(ssn: str) -> bool",
+            "doc": "Validate US Social Security Number format."
+          }
+        ],
+        "classes": [
+          {
+            "name": "PIIMatch",
+            "signature": "(pii_type: cascade.data.pii.PIIType, severity: cascade.data.pii.PIISeverity, value: str, start: int, end: int, confidence: float, context: str = '', field_name: str = '', row_index: int = -1) -> None",
+            "doc": "A detected PII instance.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "PIIPattern",
+            "signature": "(pii_type: cascade.data.pii.PIIType, severity: cascade.data.pii.PIISeverity, pattern: Pattern, confidence: float = 0.85, validator: Optional[Callable[[str], bool]] = None, context_patterns: List[str] = <factory>) -> None",
+            "doc": "A pattern for detecting PII.",
+            "methods": []
+          },
+          {
+            "name": "PIIScanResult",
+            "signature": "(total_matches: int = 0, matches_by_type: Dict[str, int] = <factory>, matches_by_severity: Dict[str, int] = <factory>, matches_by_field: Dict[str, int] = <factory>, sample_matches: List[cascade.data.pii.PIIMatch] = <factory>, fields_with_pii: Set[str] = <factory>, high_risk_fields: Set[str] = <factory>) -> None",
+            "doc": "Result of scanning content for PII.",
+            "methods": [
+              {
+                "name": "has_critical_pii",
+                "signature": "(self) -> bool"
+              },
+              {
+                "name": "has_high_risk_pii",
+                "signature": "(self) -> bool"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "PIIScanner",
+            "signature": "(patterns: List[cascade.data.pii.PIIPattern] = None, min_confidence: float = 0.5, context_boost: float = 0.1)",
+            "doc": "Scanner for detecting PII in text and datasets.",
+            "methods": [
+              {
+                "name": "scan_dataset",
+                "signature": "(self, dataset, sample_size: int = 1000) -> cascade.data.pii.PIIScanResult"
+              },
+              {
+                "name": "scan_dict",
+                "signature": "(self, data: Dict[str, List[Any]], sample_size: int = 1000) -> cascade.data.pii.PIIScanResult"
+              },
+              {
+                "name": "scan_text",
+                "signature": "(self, text: str, field_name: str = '', row_index: int = -1) -> List[cascade.data.pii.PIIMatch]"
+              }
+            ]
+          },
+          {
+            "name": "PIISeverity",
+            "signature": "(*values)",
+            "doc": "Severity levels for PII findings.",
+            "methods": []
+          },
+          {
+            "name": "PIIType",
+            "signature": "(*values)",
+            "doc": "Types of PII that can be detected.",
+            "methods": []
+          }
+        ],
+        "doc": "PII Detection for CASCADE",
+        "error": null
+      },
+      {
+        "module": "cascade.data.provenance",
+        "functions": [],
+        "classes": [
+          {
+            "name": "ProvenanceGraph",
+            "signature": "(name: str = 'default')",
+            "doc": "A graph of provenance relationships.",
+            "methods": [
+              {
+                "name": "add_activity",
+                "signature": "(self, activity: cascade.data.entities.Activity) -> str"
+              },
+              {
+                "name": "add_agent",
+                "signature": "(self, agent: cascade.data.entities.Agent) -> str"
+              },
+              {
+                "name": "add_entity",
+                "signature": "(self, entity: cascade.data.entities.DatasetEntity) -> str"
+              },
+              {
+                "name": "add_relationship",
+                "signature": "(self, relation_type: cascade.data.entities.RelationType, source_id: str, target_id: str, attributes: Dict[str, Any] = None, timestamp: float = None) -> cascade.data.entities.Relationship"
+              },
+              {
+                "name": "get_activities_for_entity",
+                "signature": "(self, entity_id: str) -> List[cascade.data.entities.Activity]"
+              },
+              {
+                "name": "get_activity",
+                "signature": "(self, activity_id: str) -> Optional[cascade.data.entities.Activity]"
+              },
+              {
+                "name": "get_agent",
+                "signature": "(self, agent_id: str) -> Optional[cascade.data.entities.Agent]"
+              },
+              {
+                "name": "get_entity",
+                "signature": "(self, entity_id: str) -> Optional[cascade.data.entities.DatasetEntity]"
+              },
+              {
+                "name": "get_inputs_for_activity",
+                "signature": "(self, activity_id: str) -> List[cascade.data.entities.DatasetEntity]"
+              },
+              {
+                "name": "get_lineage",
+                "signature": "(self, entity_id: str, direction: str = 'upstream') -> List[str]"
+              },
+              {
+                "name": "get_outputs_for_activity",
+                "signature": "(self, activity_id: str) -> List[cascade.data.entities.DatasetEntity]"
+              },
+              {
+                "name": "link_association",
+                "signature": "(self, activity_id: str, agent_id: str) -> cascade.data.entities.Relationship"
+              },
+              {
+                "name": "link_attribution",
+                "signature": "(self, entity_id: str, agent_id: str) -> cascade.data.entities.Relationship"
+              },
+              {
+                "name": "link_derivation",
+                "signature": "(self, derived_id: str, source_id: str) -> cascade.data.entities.Relationship"
+              },
+              {
+                "name": "link_generation",
+                "signature": "(self, entity_id: str, activity_id: str) -> cascade.data.entities.Relationship"
+              },
+              {
+                "name": "link_usage",
+                "signature": "(self, activity_id: str, entity_id: str) -> cascade.data.entities.Relationship"
+              },
+              {
+                "name": "list_activities",
+                "signature": "(self) -> List[cascade.data.entities.Activity]"
+              },
+              {
+                "name": "list_agents",
+                "signature": "(self) -> List[cascade.data.entities.Agent]"
+              },
+              {
+                "name": "list_entities",
+                "signature": "(self) -> List[cascade.data.entities.DatasetEntity]"
+              },
+              {
+                "name": "list_relationships",
+                "signature": "(self) -> List[cascade.data.entities.Relationship]"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_prov_jsonld",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_prov_n",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "verify_integrity",
+                "signature": "(self) -> Tuple[bool, List[str]]"
+              }
+            ]
+          },
+          {
+            "name": "ProvenanceNode",
+            "signature": "(node_id: str, node_type: str, data: Dict[str, Any], node_hash: str = '', parent_hashes: List[str] = <factory>) -> None",
+            "doc": "A node in the provenance graph with hash chain.",
+            "methods": []
+          }
+        ],
+        "doc": "Provenance Graph",
+        "error": null
+      },
+      {
+        "module": "cascade.data.schema",
+        "functions": [
+          {
+            "name": "hash_content",
+            "signature": "(data, sample_size: int = 10000) -> str",
+            "doc": "Compute content hash of dataset."
+          }
+        ],
+        "classes": [
+          {
+            "name": "DatasetSchema",
+            "signature": "(fields: Dict[str, cascade.data.schema.FieldSchema] = <factory>, primary_key: Optional[List[str]] = None, foreign_keys: Dict[str, str] = <factory>, source_format: Optional[str] = None) -> None",
+            "doc": "Complete schema for a dataset.",
+            "methods": [
+              {
+                "name": "add_field",
+                "signature": "(self, field_schema: cascade.data.schema.FieldSchema)"
+              },
+              {
+                "name": "diff",
+                "signature": "(self, other: 'DatasetSchema') -> Dict[str, Any]"
+              },
+              {
+                "name": "hash",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "FieldSchema",
+            "signature": "(name: str, dtype: str, nullable: bool = True, is_list: bool = False, list_inner_type: Optional[str] = None, is_categorical: bool = False, categories: Optional[List[str]] = None, num_categories: Optional[int] = None, nested_fields: Optional[Dict[str, ForwardRef('FieldSchema')]] = None, shape: Optional[tuple] = None, min_value: Optional[float] = None, max_value: Optional[float] = None, pattern: Optional[str] = None, description: Optional[str] = None) -> None",
+            "doc": "Schema for a single field/column.",
+            "methods": [
+              {
+                "name": "hash",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "SchemaObserver",
+            "signature": "()",
+            "doc": "Observes and extracts schemas from various data sources.",
+            "methods": [
+              {
+                "name": "observe_arrow",
+                "signature": "(self, table) -> cascade.data.schema.DatasetSchema"
+              },
+              {
+                "name": "observe_dict",
+                "signature": "(self, data: Dict[str, Any], sample_size: int = 100) -> cascade.data.schema.DatasetSchema"
+              },
+              {
+                "name": "observe_hf_dataset",
+                "signature": "(self, dataset) -> cascade.data.schema.DatasetSchema"
+              },
+              {
+                "name": "observe_pandas",
+                "signature": "(self, df) -> cascade.data.schema.DatasetSchema"
+              }
+            ]
+          }
+        ],
+        "doc": "Schema Observer",
+        "error": null
+      },
+      {
+        "module": "cascade.demo",
+        "functions": [
+          {
+            "name": "check_demo_dependencies",
+            "signature": "()",
+            "doc": "Check if demo dependencies are installed."
+          },
+          {
+            "name": "main",
+            "signature": "()",
+            "doc": "Launch the interactive CASCADE-LATTICE demo."
+          }
+        ],
+        "classes": [],
+        "doc": "CASCADE-LATTICE Interactive Demo",
+        "error": null
+      },
+      {
+        "module": "cascade.demo_sdk",
+        "functions": [
+          {
+            "name": "demo_auto_patch",
+            "signature": "()",
+            "doc": "Demo auto-patching (requires providers to be installed)."
+          },
+          {
+            "name": "demo_manual_observation",
+            "signature": "()",
+            "doc": "Demo manual observation without any provider installed."
+          }
+        ],
+        "classes": [],
+        "doc": "CASCADE SDK Demo - Shows automatic observation of calls.",
+        "error": null
+      },
+      {
+        "module": "cascade.diagnostics.bug_detector",
+        "functions": [],
+        "classes": [
+          {
+            "name": "BugDetector",
+            "signature": "()",
+            "doc": "Static analysis bug detector using AST patterns.",
+            "methods": [
+              {
+                "name": "get_report",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "get_summary",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "register_pattern",
+                "signature": "(self, pattern: cascade.diagnostics.bug_detector.BugPattern)"
+              },
+              {
+                "name": "scan_directory",
+                "signature": "(self, dir_path: str, recursive: bool = True) -> List[cascade.diagnostics.bug_detector.DetectedIssue]"
+              },
+              {
+                "name": "scan_file",
+                "signature": "(self, file_path: str) -> List[cascade.diagnostics.bug_detector.DetectedIssue]"
+              }
+            ]
+          },
+          {
+            "name": "BugPattern",
+            "signature": "(name: str, description: str, severity: str, detector: Callable[[str, ast.AST], List[Dict[str, Any]]], category: str = 'general') -> None",
+            "doc": "A detectable bug pattern.",
+            "methods": []
+          },
+          {
+            "name": "DetectedIssue",
+            "signature": "(issue_id: str, pattern_name: str, severity: str, file_path: str, line_number: int, column: int, code_snippet: str, message: str, suggestion: Optional[str] = None, confidence: float = 1.0) -> None",
+            "doc": "A detected code issue.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE Bug Detector - Automatic bug detection using pattern matching.",
+        "error": null
+      },
+      {
+        "module": "cascade.diagnostics.code_tracer",
+        "functions": [],
+        "classes": [
+          {
+            "name": "BugSignature",
+            "signature": "(bug_type: str, severity: str, evidence: List[str], affected_events: List[str], root_cause_event: Optional[str] = None, confidence: float = 0.0) -> None",
+            "doc": "A detected bug signature - pattern that indicates a problem.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "CodeEvent",
+            "signature": "(timestamp: float, component: str, event_type: str, data: Dict[str, Any] = <factory>, event_id: str = <factory>, source_signal: Optional[Any] = None, file_path: str = '', line_number: int = 0, function_name: str = '', class_name: Optional[str] = None, module_name: str = '', call_stack_depth: int = 0, thread_id: int = 0, args: Dict[str, Any] = <factory>, kwargs: Dict[str, Any] = <factory>, return_value: Optional[Any] = None, exception: Optional[str] = None, duration_ms: float = 0.0) -> None",
+            "doc": "An event in code execution - extends base Event with code-specific data.",
+            "methods": []
+          },
+          {
+            "name": "CodeTracer",
+            "signature": "(name: str = 'code_tracer')",
+            "doc": "Trace code execution using cascade-lattice causation graph.",
+            "methods": [
+              {
+                "name": "analyze_impact",
+                "signature": "(self, event_id: str) -> cascade.analysis.tracer.ImpactAnalysis"
+              },
+              {
+                "name": "detect_bugs",
+                "signature": "(self) -> List[cascade.diagnostics.code_tracer.BugSignature]"
+              },
+              {
+                "name": "find_root_causes",
+                "signature": "(self, event_id: str) -> cascade.analysis.tracer.RootCauseAnalysis"
+              },
+              {
+                "name": "get_error_chain",
+                "signature": "(self, error_event_id: str) -> str"
+              },
+              {
+                "name": "get_summary",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "trace",
+                "signature": "(self, func: Callable = None, *, capture_args: bool = True)"
+              },
+              {
+                "name": "trace_backwards",
+                "signature": "(self, event_id: str, max_depth: int = 100)"
+              },
+              {
+                "name": "trace_forwards",
+                "signature": "(self, event_id: str, max_depth: int = 100)"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE Code Tracer - Trace execution through code to find bugs.",
+        "error": null
+      },
+      {
+        "module": "cascade.diagnostics.demo",
+        "functions": [
+          {
+            "name": "buggy_function",
+            "signature": "(x, y)",
+            "doc": "Function with potential issues."
+          },
+          {
+            "name": "calculate_average",
+            "signature": "(numbers)",
+            "doc": "Calculate average - but has a bug with empty lists!"
+          },
+          {
+            "name": "process_data",
+            "signature": "(data)",
+            "doc": "Process data and return stats."
+          },
+          {
+            "name": "raise_error",
+            "signature": "()",
+            "doc": "Function that raises an error."
+          },
+          {
+            "name": "recursive_fib",
+            "signature": "(n)",
+            "doc": "Intentionally slow recursive fibonacci."
+          }
+        ],
+        "classes": [],
+        "doc": "CASCADE Diagnostics Demo - Exposing bugs with tracing.",
+        "error": null
+      },
+      {
+        "module": "cascade.diagnostics.execution_monitor",
+        "functions": [
+          {
+            "name": "monitor",
+            "signature": "(func: Callable = None, **kwargs) -> Callable",
+            "doc": "Decorator to monitor a function's execution."
+          }
+        ],
+        "classes": [
+          {
+            "name": "Anomaly",
+            "signature": "(anomaly_type: str, description: str, severity: str, frame_id: str, timestamp: float, context: Dict[str, Any] = <factory>) -> None",
+            "doc": "An execution anomaly detected during monitoring.",
+            "methods": []
+          },
+          {
+            "name": "ExecutionFrame",
+            "signature": "(frame_id: str, function_name: str, file_path: str, line_number: int, local_vars: Dict[str, str], timestamp: float, duration_ms: Optional[float] = None, exception: Optional[str] = None) -> None",
+            "doc": "A frame in the execution trace.",
+            "methods": []
+          },
+          {
+            "name": "ExecutionMonitor",
+            "signature": "(capture_locals: bool = True, max_depth: int = 100, exclude_modules: Optional[Set[str]] = None)",
+            "doc": "Monitor live code execution and capture anomalies.",
+            "methods": [
+              {
+                "name": "get_anomalies",
+                "signature": "(self, severity: Optional[str] = None) -> List[cascade.diagnostics.execution_monitor.Anomaly]"
+              },
+              {
+                "name": "get_call_graph",
+                "signature": "(self) -> Dict[str, List[str]]"
+              },
+              {
+                "name": "get_execution_trace",
+                "signature": "(self) -> List[cascade.diagnostics.execution_monitor.ExecutionFrame]"
+              },
+              {
+                "name": "get_hotspots",
+                "signature": "(self, top_n: int = 10) -> List[Tuple[str, float, int]]"
+              },
+              {
+                "name": "get_report",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "get_summary",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "monitoring",
+                "signature": "(self)"
+              },
+              {
+                "name": "start",
+                "signature": "(self)"
+              },
+              {
+                "name": "stop",
+                "signature": "(self)"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE Execution Monitor - Monitor live code execution.",
+        "error": null
+      },
+      {
+        "module": "cascade.diagnostics.report",
+        "functions": [
+          {
+            "name": "diagnose",
+            "signature": "(target, **kwargs) -> cascade.diagnostics.report.DiagnosticReport",
+            "doc": "Convenience function to run diagnostics."
+          }
+        ],
+        "classes": [
+          {
+            "name": "DiagnosticEngine",
+            "signature": "()",
+            "doc": "Engine for running comprehensive diagnostics.",
+            "methods": [
+              {
+                "name": "analyze_directory",
+                "signature": "(self, dir_path: str, recursive: bool = True) -> cascade.diagnostics.report.DiagnosticReport"
+              },
+              {
+                "name": "analyze_execution",
+                "signature": "(self, func, *args, **kwargs) -> cascade.diagnostics.report.DiagnosticReport"
+              },
+              {
+                "name": "analyze_file",
+                "signature": "(self, file_path: str) -> cascade.diagnostics.report.DiagnosticReport"
+              },
+              {
+                "name": "to_markdown",
+                "signature": "(self, report: cascade.diagnostics.report.DiagnosticReport) -> str"
+              }
+            ]
+          },
+          {
+            "name": "DiagnosticFinding",
+            "signature": "(finding_id: str, category: str, severity: str, title: str, description: str, location: Optional[Dict[str, Any]] = None, evidence: List[str] = <factory>, related_findings: List[str] = <factory>, suggestions: List[str] = <factory>, confidence: float = 1.0, timestamp: float = <factory>) -> None",
+            "doc": "A single diagnostic finding.",
+            "methods": []
+          },
+          {
+            "name": "DiagnosticReport",
+            "signature": "(report_id: str, title: str, created_at: float, target: str, findings: List[cascade.diagnostics.report.DiagnosticFinding] = <factory>, summary: Dict[str, Any] = <factory>, static_analysis: Dict[str, Any] = <factory>, runtime_analysis: Dict[str, Any] = <factory>, trace_analysis: Dict[str, Any] = <factory>, forensic_analysis: Dict[str, Any] = <factory>) -> None",
+            "doc": "A comprehensive diagnostic report.",
+            "methods": [
+              {
+                "name": "add_finding",
+                "signature": "(self, finding: cascade.diagnostics.report.DiagnosticFinding)"
+              },
+              {
+                "name": "compute_summary",
+                "signature": "(self)"
+              },
+              {
+                "name": "get_findings_by_category",
+                "signature": "(self, category: str) -> List[cascade.diagnostics.report.DiagnosticFinding]"
+              },
+              {
+                "name": "get_findings_by_severity",
+                "signature": "(self, severity: str) -> List[cascade.diagnostics.report.DiagnosticFinding]"
+              },
+              {
+                "name": "save",
+                "signature": "(self, path: str)"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_json",
+                "signature": "(self, indent: int = 2) -> str"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE Diagnostic Report - Generate comprehensive diagnostic reports.",
+        "error": null
+      },
+      {
+        "module": "cascade.export.tableau_export",
+        "functions": [
+          {
+            "name": "export_causation_graph_csv",
+            "signature": "(links, output_path: str) -> str",
+            "doc": "Export causation edges to CSV."
+          },
+          {
+            "name": "export_chains_csv",
+            "signature": "(chains, output_path: str) -> str",
+            "doc": "Export chains to CSV."
+          },
+          {
+            "name": "export_events_csv",
+            "signature": "(events, output_path: str) -> str",
+            "doc": "Export events to CSV."
+          },
+          {
+            "name": "export_for_tableau",
+            "signature": "(output_dir: str = './tableau_export', include_sample_data: bool = True) -> Dict[str, str]",
+            "doc": "One-line export of all Cascade data for Tableau."
+          },
+          {
+            "name": "export_hold_events_csv",
+            "signature": "(hold_pairs, output_path: str) -> str",
+            "doc": "Export HOLD events to CSV. hold_pairs = [(hold_point, resolution), ...]"
+          },
+          {
+            "name": "export_metrics_csv",
+            "signature": "(events, output_path: str) -> str",
+            "doc": "Export metrics time series to CSV."
+          }
+        ],
+        "classes": [
+          {
+            "name": "CausationEdgeRow",
+            "signature": "(link_id: str, from_event_id: str, to_event_id: str, causation_type: str, strength: float, timestamp: float, timestamp_iso: str) -> None",
+            "doc": "Flattened causation link for Tableau.",
+            "methods": []
+          },
+          {
+            "name": "ChainRow",
+            "signature": "(session_id: str, model_id: str, model_hash: str, input_hash: str, output_hash: Optional[str], merkle_root: str, created_at: float, created_at_iso: str, record_count: int, external_links_count: int, is_verified: bool) -> None",
+            "doc": "Flattened provenance chain for Tableau.",
+            "methods": []
+          },
+          {
+            "name": "EventRow",
+            "signature": "(event_id: str, timestamp: float, timestamp_iso: str, component: str, event_type: str, data_json: str, loss: Optional[float] = None, accuracy: Optional[float] = None, learning_rate: Optional[float] = None, epoch: Optional[int] = None, step: Optional[int] = None, tokens: Optional[int] = None, latency_ms: Optional[float] = None, error_message: Optional[str] = None) -> None",
+            "doc": "Flattened event for Tableau.",
+            "methods": []
+          },
+          {
+            "name": "HoldEventRow",
+            "signature": "(hold_id: str, timestamp: float, timestamp_iso: str, brain_id: str, state: str, ai_choice: int, ai_confidence: float, final_action: int, was_override: bool, hold_duration_sec: float, value_estimate: float, action_count: int, override_source: Optional[str] = None) -> None",
+            "doc": "Flattened HOLD event for Tableau.",
+            "methods": []
+          },
+          {
+            "name": "MetricRow",
+            "signature": "(timestamp: float, timestamp_iso: str, metric_name: str, metric_value: float, category: str, component: str, is_anomaly: bool, anomaly_severity: Optional[str] = None) -> None",
+            "doc": "Time-series metric for Tableau.",
+            "methods": []
+          },
+          {
+            "name": "TableauExporter",
+            "signature": "()",
+            "doc": "Export Cascade data for Tableau visualization.",
+            "methods": [
+              {
+                "name": "add_causation_link",
+                "signature": "(self, link) -> None"
+              },
+              {
+                "name": "add_causation_links",
+                "signature": "(self, links) -> None"
+              },
+              {
+                "name": "add_chain",
+                "signature": "(self, chain, is_verified: bool = True) -> None"
+              },
+              {
+                "name": "add_chains",
+                "signature": "(self, chains) -> None"
+              },
+              {
+                "name": "add_event",
+                "signature": "(self, event) -> None"
+              },
+              {
+                "name": "add_events",
+                "signature": "(self, events) -> None"
+              },
+              {
+                "name": "add_hold_event",
+                "signature": "(self, hold_point, resolution) -> None"
+              },
+              {
+                "name": "add_metric",
+                "signature": "(self, name: str, value: float, timestamp: float, category: str = 'OTHER', component: str = 'default', is_anomaly: bool = False, anomaly_severity: str = None) -> None"
+              },
+              {
+                "name": "add_metrics_from_event",
+                "signature": "(self, event, category_map: Dict[str, str] = None) -> None"
+              },
+              {
+                "name": "export",
+                "signature": "(self, output_dir: str) -> Dict[str, str]"
+              },
+              {
+                "name": "export_hyper",
+                "signature": "(self, output_path: str) -> Optional[str]"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE \u2192 Tableau Export Pipeline",
+        "error": null
+      },
+      {
+        "module": "cascade.forensics.analyzer",
+        "functions": [
+          {
+            "name": "analyze_dataframe",
+            "signature": "(df, mode: str = 'auto') -> cascade.forensics.analyzer.ForensicsReport",
+            "doc": "Convenience function to analyze a dataframe."
+          },
+          {
+            "name": "analyze_file",
+            "signature": "(filepath: str, mode: str = 'auto') -> cascade.forensics.analyzer.ForensicsReport",
+            "doc": "Convenience function to analyze a file."
+          }
+        ],
+        "classes": [
+          {
+            "name": "DataForensics",
+            "signature": "()",
+            "doc": "Main forensics analyzer.",
+            "methods": [
+              {
+                "name": "analyze",
+                "signature": "(self, df, mode: str = 'auto') -> cascade.forensics.analyzer.ForensicsReport"
+              },
+              {
+                "name": "analyze_file",
+                "signature": "(self, filepath: str, mode: str = 'auto') -> cascade.forensics.analyzer.ForensicsReport"
+              }
+            ]
+          },
+          {
+            "name": "ForensicsReport",
+            "signature": "(artifacts: List[cascade.forensics.artifacts.Artifact] = <factory>, ghost_log: cascade.forensics.analyzer.GhostLog = <factory>, fingerprints: List[cascade.forensics.fingerprints.Fingerprint] = <factory>, likely_stack: Dict[str, Any] = <factory>, security_concerns: List[Dict[str, Any]] = <factory>, analysis_timestamp: float = <factory>, row_count: int = 0, column_count: int = 0, data_hash: str = '', analysis_mode: str = 'dataset') -> None",
+            "doc": "Complete forensics analysis report.",
+            "methods": [
+              {
+                "name": "summary",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "GhostLog",
+            "signature": "(operations: List[cascade.forensics.analyzer.InferredOperation] = <factory>, analysis_timestamp: float = <factory>, data_hash: str = '', ghost_hash: str = '') -> None",
+            "doc": "Inferred processing history - the ghost of the system.",
+            "methods": [
+              {
+                "name": "add_operation",
+                "signature": "(self, op: str, desc: str, confidence: float, evidence: List[str] = None)"
+              },
+              {
+                "name": "finalize",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "to_narrative",
+                "signature": "(self) -> str"
+              }
+            ]
+          },
+          {
+            "name": "InferredOperation",
+            "signature": "(sequence: int, operation: str, description: str, confidence: float, evidence: List[str] = <factory>) -> None",
+            "doc": "A single inferred operation from the ghost log.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE Forensics - Main Analyzer",
+        "error": null
+      },
+      {
+        "module": "cascade.forensics.artifacts",
+        "functions": [],
+        "classes": [
+          {
+            "name": "Artifact",
+            "signature": "(artifact_type: str, column: str, evidence: str, confidence: float, inferred_operation: str, details: Dict[str, Any] = <factory>) -> None",
+            "doc": "A single detected artifact - evidence of processing.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "ArtifactDetector",
+            "signature": "()",
+            "doc": "Base class for artifact detection.",
+            "methods": [
+              {
+                "name": "detect",
+                "signature": "(self, df, column: str) -> List[cascade.forensics.artifacts.Artifact]"
+              },
+              {
+                "name": "detect_all",
+                "signature": "(self, df) -> List[cascade.forensics.artifacts.Artifact]"
+              }
+            ]
+          },
+          {
+            "name": "IDPatternArtifacts",
+            "signature": "()",
+            "doc": "Detect ID patterns that reveal data lineage.",
+            "methods": [
+              {
+                "name": "detect",
+                "signature": "(self, df, column: str) -> List[cascade.forensics.artifacts.Artifact]"
+              }
+            ]
+          },
+          {
+            "name": "NullPatternArtifacts",
+            "signature": "()",
+            "doc": "Detect null/missing value patterns.",
+            "methods": [
+              {
+                "name": "detect",
+                "signature": "(self, df, column: str) -> List[cascade.forensics.artifacts.Artifact]"
+              },
+              {
+                "name": "detect_all",
+                "signature": "(self, df) -> List[cascade.forensics.artifacts.Artifact]"
+              }
+            ]
+          },
+          {
+            "name": "NumericArtifacts",
+            "signature": "()",
+            "doc": "Detect numeric processing artifacts.",
+            "methods": [
+              {
+                "name": "detect",
+                "signature": "(self, df, column: str) -> List[cascade.forensics.artifacts.Artifact]"
+              }
+            ]
+          },
+          {
+            "name": "SchemaArtifacts",
+            "signature": "()",
+            "doc": "Detect schema-level artifacts.",
+            "methods": [
+              {
+                "name": "detect",
+                "signature": "(self, df, column: str) -> List[cascade.forensics.artifacts.Artifact]"
+              },
+              {
+                "name": "detect_all",
+                "signature": "(self, df) -> List[cascade.forensics.artifacts.Artifact]"
+              }
+            ]
+          },
+          {
+            "name": "TextArtifacts",
+            "signature": "()",
+            "doc": "Detect text processing artifacts.",
+            "methods": [
+              {
+                "name": "detect",
+                "signature": "(self, df, column: str) -> List[cascade.forensics.artifacts.Artifact]"
+              }
+            ]
+          },
+          {
+            "name": "TimestampArtifacts",
+            "signature": "()",
+            "doc": "Detect timestamp patterns that reveal processing behavior.",
+            "methods": [
+              {
+                "name": "detect",
+                "signature": "(self, df, column: str) -> List[cascade.forensics.artifacts.Artifact]"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE Forensics - Artifact Detectors",
+        "error": null
+      },
+      {
+        "module": "cascade.forensics.fingerprints",
+        "functions": [],
+        "classes": [
+          {
+            "name": "Fingerprint",
+            "signature": "(technology: str, category: str, confidence: float, evidence: List[str] = <factory>) -> None",
+            "doc": "A technology fingerprint - evidence pointing to specific tools.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "TechFingerprinter",
+            "signature": "()",
+            "doc": "Map artifact patterns to likely technologies.",
+            "methods": [
+              {
+                "name": "analyze",
+                "signature": "(self, artifacts: List[ForwardRef('Artifact')]) -> List[cascade.forensics.fingerprints.Fingerprint]"
+              },
+              {
+                "name": "get_likely_stack",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "get_security_concerns",
+                "signature": "(self) -> List[Dict[str, Any]]"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE Forensics - Technology Fingerprinting",
+        "error": null
+      },
+      {
+        "module": "cascade.genesis",
+        "functions": [
+          {
+            "name": "create_genesis",
+            "signature": "() -> cascade.core.provenance.ProvenanceChain",
+            "doc": "Create the genesis chain - origin of the neural internetwork."
+          },
+          {
+            "name": "get_genesis_root",
+            "signature": "() -> str",
+            "doc": "Get the genesis merkle root."
+          },
+          {
+            "name": "link_to_genesis",
+            "signature": "(chain: cascade.core.provenance.ProvenanceChain) -> None",
+            "doc": "Link a chain to genesis, joining the neural internetwork."
+          },
+          {
+            "name": "load_genesis",
+            "signature": "(path: pathlib._local.Path) -> cascade.core.provenance.ProvenanceChain",
+            "doc": "Load genesis from file and verify it's authentic."
+          },
+          {
+            "name": "save_genesis",
+            "signature": "(path: pathlib._local.Path) -> str",
+            "doc": "Save genesis chain to file."
+          },
+          {
+            "name": "verify_lineage_to_genesis",
+            "signature": "(chain: cascade.core.provenance.ProvenanceChain, known_chains: Dict[str, cascade.core.provenance.ProvenanceChain]) -> bool",
+            "doc": "Verify that a chain traces back to genesis through external_roots."
+          }
+        ],
+        "classes": [],
+        "doc": "CASCADE Genesis - The origin node of the neural internetwork.",
+        "error": null
+      },
+      {
+        "module": "cascade.hold.primitives",
+        "functions": [],
+        "classes": [
+          {
+            "name": "Hold",
+            "signature": "()",
+            "doc": "The HOLD system - manages inference-level halts.",
+            "methods": [
+              {
+                "name": "accept",
+                "signature": "(self)"
+              },
+              {
+                "name": "cancel",
+                "signature": "(self)"
+              },
+              {
+                "name": "override",
+                "signature": "(self, action: int, source: str = 'human')"
+              },
+              {
+                "name": "register_listener",
+                "signature": "(self, callback: Callable[[cascade.hold.primitives.HoldPoint], NoneType])"
+              },
+              {
+                "name": "resolve",
+                "signature": "(self, action: int, source: str = 'human')"
+              },
+              {
+                "name": "unregister_listener",
+                "signature": "(self, callback: Callable)"
+              },
+              {
+                "name": "yield_point",
+                "signature": "(self, action_probs: numpy.ndarray, value: float, observation: Dict[str, Any], brain_id: str, action_labels: Optional[List[str]] = None, latent: Optional[numpy.ndarray] = None, attention: Optional[Dict[str, float]] = None, features: Optional[Dict[str, float]] = None, imagination: Optional[Dict[int, Dict]] = None, logits: Optional[numpy.ndarray] = None, reasoning: Optional[List[str]] = None, world_prediction: Optional[Dict[str, Any]] = None, blocking: bool = True) -> cascade.hold.primitives.HoldResolution"
+              }
+            ]
+          },
+          {
+            "name": "HoldAwareMixin",
+            "signature": "(*args, **kwargs)",
+            "doc": "Mixin for brains that support HOLD.",
+            "methods": [
+              {
+                "name": "disable_hold",
+                "signature": "(self)"
+              },
+              {
+                "name": "enable_hold",
+                "signature": "(self)"
+              },
+              {
+                "name": "forward_with_hold",
+                "signature": "(self, inputs: Dict[str, Any], blocking: bool = True) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "HoldPoint",
+            "signature": "(action_probs: numpy.ndarray, value: float, observation: Dict[str, Any], brain_id: str, action_labels: Optional[List[str]] = None, latent: Optional[numpy.ndarray] = None, attention: Optional[Dict[str, float]] = None, features: Optional[Dict[str, float]] = None, imagination: Optional[Dict[int, Dict]] = None, logits: Optional[numpy.ndarray] = None, reasoning: Optional[List[str]] = None, world_prediction: Optional[Dict[str, Any]] = None, id: str = <factory>, timestamp: float = <factory>, parent_merkle: Optional[str] = None, merkle_root: Optional[str] = None, state: cascade.hold.primitives.HoldState = <HoldState.PENDING: 'pending'>) -> None",
+            "doc": "A decision point where inference yields for potential human intervention.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "HoldResolution",
+            "signature": "(hold_point: cascade.hold.primitives.HoldPoint, action: int, was_override: bool, override_source: Optional[str] = None, hold_duration: float = 0.0, timestamp: float = <factory>, merkle_root: Optional[str] = None) -> None",
+            "doc": "The resolution of a hold point.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "HoldState",
+            "signature": "(*values)",
+            "doc": "State of a hold point.",
+            "methods": []
+          }
+        ],
+        "doc": "HOLD Primitives - Core Data Structures and Singleton\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550",
+        "error": null
+      },
+      {
+        "module": "cascade.hold.session",
+        "functions": [],
+        "classes": [
+          {
+            "name": "ArcadeFeedback",
+            "signature": "(message: str, intensity: float, sound_cue: str, color: Tuple[int, int, int] = (255, 255, 255)) -> None",
+            "doc": "Visual/audio feedback cues.",
+            "methods": []
+          },
+          {
+            "name": "CausationHold",
+            "signature": "(cascade_bus=None)",
+            "doc": "The arcade-layer hold system. Wraps any inference function.",
+            "methods": [
+              {
+                "name": "accept",
+                "signature": "(self)"
+              },
+              {
+                "name": "begin_session",
+                "signature": "(self, agent_id: str) -> cascade.hold.session.HoldSession"
+              },
+              {
+                "name": "branch_from",
+                "signature": "(self, step_index: int, choice_index: int) -> Optional[cascade.hold.session.InferenceStep]"
+              },
+              {
+                "name": "capture",
+                "signature": "(self, input_context: Dict[str, Any], candidates: List[Dict[str, Any]], hidden_state: Optional[numpy.ndarray] = None, attention: Optional[Dict[str, float]] = None, state_snapshot: Optional[Dict[str, Any]] = None) -> Tuple[Any, cascade.hold.session.ArcadeFeedback]"
+              },
+              {
+                "name": "end_session",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "forward",
+                "signature": "(self, steps: int = 1) -> Optional[cascade.hold.session.InferenceStep]"
+              },
+              {
+                "name": "input",
+                "signature": "(self, choice: Any)"
+              },
+              {
+                "name": "intercept",
+                "signature": "(self, granularity: str = 'step')"
+              },
+              {
+                "name": "jump_to",
+                "signature": "(self, index: int) -> Optional[cascade.hold.session.InferenceStep]"
+              },
+              {
+                "name": "on",
+                "signature": "(self, event: str, callback: Callable)"
+              },
+              {
+                "name": "override",
+                "signature": "(self, index: int)"
+              },
+              {
+                "name": "pause",
+                "signature": "(self)"
+              },
+              {
+                "name": "rewind",
+                "signature": "(self, steps: int = 1, restore_state: bool = True) -> Optional[cascade.hold.session.InferenceStep]"
+              },
+              {
+                "name": "set_speed",
+                "signature": "(self, level: int)"
+              },
+              {
+                "name": "speed_down",
+                "signature": "(self)"
+              },
+              {
+                "name": "speed_up",
+                "signature": "(self)"
+              },
+              {
+                "name": "unpause",
+                "signature": "(self)"
+              }
+            ]
+          },
+          {
+            "name": "HoldSession",
+            "signature": "(session_id: str, agent_id: str, started_at: float, steps: List[cascade.hold.session.InferenceStep] = <factory>, current_index: int = 0, total_steps: int = 0, human_overrides: int = 0, correct_predictions: int = 0, combo: int = 0, max_combo: int = 0, speed_level: int = 0, speed_map: Dict[int, float] = <factory>, state: cascade.hold.session.SessionState = <SessionState.IDLE: 'idle'>) -> None",
+            "doc": "A complete hold session with history.",
+            "methods": []
+          },
+          {
+            "name": "InferenceStep",
+            "signature": "(step_id: str, step_index: int, timestamp: float, input_context: Dict[str, Any], candidates: List[Dict[str, Any]], top_choice: Any, top_probability: float, hidden_state: Optional[numpy.ndarray] = None, attention_weights: Optional[Dict[str, float]] = None, chosen_value: Any = None, was_override: bool = False, override_by: str = 'model', cascade_hash: Optional[str] = None, _state_snapshot: Optional[Dict[str, Any]] = None) -> None",
+            "doc": "A single crystallized moment of inference.",
+            "methods": []
+          },
+          {
+            "name": "SessionState",
+            "signature": "(*values)",
+            "doc": "Current state of the hold session.",
+            "methods": []
+          }
+        ],
+        "doc": "HOLD Session - Arcade-Style Inference Interception\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550",
+        "error": null
+      },
+      {
+        "module": "cascade.identity",
+        "functions": [
+          {
+            "name": "create_model_identity",
+            "signature": "(model_id: str, weights_path: Optional[pathlib._local.Path] = None, config: Optional[dict] = None, parent_root: Optional[str] = None, behavioral_fingerprint: Optional[cascade.identity.BehavioralFingerprint] = None, **kwargs) -> cascade.identity.ModelIdentity",
+            "doc": "Factory function to create ModelIdentity from various inputs."
+          },
+          {
+            "name": "detect_format",
+            "signature": "(model_path: str) -> str",
+            "doc": "Detect model format from path."
+          },
+          {
+            "name": "detect_provider",
+            "signature": "(model_path: str) -> Optional[str]",
+            "doc": "Detect who made this variant."
+          },
+          {
+            "name": "detect_quantization",
+            "signature": "(model_path: str) -> str",
+            "doc": "Detect quantization from model path or name."
+          },
+          {
+            "name": "generate_behavioral_fingerprint",
+            "signature": "(call_fn, probes: List[dict] = None, version: int = 1) -> cascade.identity.BehavioralFingerprint",
+            "doc": "Generate behavioral fingerprint by running standard probes."
+          }
+        ],
+        "classes": [
+          {
+            "name": "BehavioralFingerprint",
+            "signature": "(probe_responses: List[Dict[str, Any]] = <factory>, probe_hash: Optional[str] = None, fingerprint_version: int = 1, generated_at: Optional[float] = None) -> None",
+            "doc": "Fingerprint for API models where weights are unavailable.\nGenerated by running standard probes and hashing responses.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> dict"
+              }
+            ]
+          },
+          {
+            "name": "FineTuneInfo",
+            "signature": "(type: str = 'none', adapter_id: Optional[str] = None, adapter_hash: Optional[str] = None, base_model_root: Optional[str] = None, dataset_id: Optional[str] = None) -> None",
+            "doc": "Describes fine-tuning applied to a model.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> dict"
+              }
+            ]
+          },
+          {
+            "name": "FineTuneType",
+            "signature": "(*values)",
+            "doc": "Fine-tuning methods.",
+            "methods": []
+          },
+          {
+            "name": "ModelFormat",
+            "signature": "(*values)",
+            "doc": "Model weight formats.",
+            "methods": []
+          },
+          {
+            "name": "ModelIdentity",
+            "signature": "(base_model: str, model_id: str, variant: cascade.identity.ModelVariant = <factory>, fine_tune: cascade.identity.FineTuneInfo = <factory>, weight_hash: Optional[str] = None, config_hash: Optional[str] = None, tokenizer_hash: Optional[str] = None, behavioral_fingerprint: Optional[cascade.identity.BehavioralFingerprint] = None, source_url: Optional[str] = None, source_revision: Optional[str] = None, downloaded_at: Optional[float] = None, parent_root: Optional[str] = None, merkle_root: Optional[str] = None, created_at: float = <factory>, parameters: Optional[int] = None, context_length: Optional[int] = None, architecture: Optional[str] = None, license: Optional[str] = None) -> None",
+            "doc": "Canonical identity for any AI model variant.",
+            "methods": [
+              {
+                "name": "compute_merkle_root",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "compute_model_id",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "finalize",
+                "signature": "(self, parent_root: str = None)"
+              },
+              {
+                "name": "to_chain_format",
+                "signature": "(self) -> dict"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> dict"
+              }
+            ]
+          },
+          {
+            "name": "ModelRegistry",
+            "signature": "(lattice_dir: pathlib._local.Path = None, genesis_root: str = None)",
+            "doc": "Registry of model identities in the lattice.",
+            "methods": [
+              {
+                "name": "get_by_root",
+                "signature": "(self, merkle_root: str) -> Optional[cascade.identity.ModelIdentity]"
+              },
+              {
+                "name": "get_or_create",
+                "signature": "(self, model_id: str, **kwargs) -> cascade.identity.ModelIdentity"
+              },
+              {
+                "name": "list_all",
+                "signature": "(self) -> List[cascade.identity.ModelIdentity]"
+              },
+              {
+                "name": "list_by_base",
+                "signature": "(self, base_model: str) -> List[cascade.identity.ModelIdentity]"
+              },
+              {
+                "name": "search",
+                "signature": "(self, query: str) -> List[cascade.identity.ModelIdentity]"
+              }
+            ]
+          },
+          {
+            "name": "ModelVariant",
+            "signature": "(quantization: str = 'none', format: str = 'unknown', bits: Optional[int] = None, provider: Optional[str] = None) -> None",
+            "doc": "Describes how a model differs from its base.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> dict"
+              }
+            ]
+          },
+          {
+            "name": "QuantizationType",
+            "signature": "(*values)",
+            "doc": "Quantization methods.",
+            "methods": []
+          }
+        ],
+        "doc": "CASCADE Model Identity Layer",
+        "error": null
+      },
+      {
+        "module": "cascade.ipld",
+        "functions": [
+          {
+            "name": "chain_to_cid",
+            "signature": "(chain: cascade.core.provenance.ProvenanceChain) -> tuple[str, bytes]",
+            "doc": "Convert chain to CID."
+          },
+          {
+            "name": "chain_to_ipld",
+            "signature": "(chain: cascade.core.provenance.ProvenanceChain) -> Dict[str, Any]",
+            "doc": "Convert a ProvenanceChain to IPLD-compatible format."
+          },
+          {
+            "name": "compute_cid",
+            "signature": "(data: bytes, codec: str = 'dag-cbor') -> str",
+            "doc": "Compute CID (Content IDentifier) from data."
+          },
+          {
+            "name": "decode_from_dag_cbor",
+            "signature": "(raw: bytes) -> Dict[str, Any]",
+            "doc": "Decode DAG-CBOR data."
+          },
+          {
+            "name": "encode_to_dag_cbor",
+            "signature": "(data: Dict[str, Any]) -> bytes",
+            "doc": "Encode data as DAG-CBOR (canonical CBOR for IPLD)."
+          },
+          {
+            "name": "fetch_from_ipfs",
+            "signature": "(cid: str, ipfs_api: str = '/ip4/127.0.0.1/tcp/5001') -> cascade.ipld.IPLDChain",
+            "doc": "Fetch chain from IPFS network by CID."
+          },
+          {
+            "name": "get_genesis_cid",
+            "signature": "() -> tuple[str, cascade.ipld.IPLDChain]",
+            "doc": "Get genesis as IPLD chain with CID."
+          },
+          {
+            "name": "ipld_to_chain",
+            "signature": "(ipld_data: Dict[str, Any]) -> cascade.core.provenance.ProvenanceChain",
+            "doc": "Convert IPLD data back to ProvenanceChain."
+          },
+          {
+            "name": "publish_to_ipfs",
+            "signature": "(chain: cascade.ipld.IPLDChain, ipfs_api: str = '/ip4/127.0.0.1/tcp/5001') -> str",
+            "doc": "Publish chain to IPFS network."
+          }
+        ],
+        "classes": [
+          {
+            "name": "IPLDChain",
+            "signature": "(chain: cascade.core.provenance.ProvenanceChain, cid: Optional[str] = None, encoded: Optional[bytes] = None) -> None",
+            "doc": "A provenance chain with native CID support.",
+            "methods": [
+              {
+                "name": "link_to",
+                "signature": "(self, other: 'IPLDChain') -> None"
+              },
+              {
+                "name": "save",
+                "signature": "(self, path: pathlib._local.Path) -> None"
+              },
+              {
+                "name": "to_json",
+                "signature": "(self) -> str"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE IPLD - InterPlanetary Linked Data Integration",
+        "error": null
+      },
+      {
+        "module": "cascade.listen",
+        "functions": [
+          {
+            "name": "main",
+            "signature": "()",
+            "doc": ""
+          }
+        ],
+        "classes": [],
+        "doc": "Cascade Passive Monitor.",
+        "error": null
+      },
+      {
+        "module": "cascade.logging.color_example",
+        "functions": [
+          {
+            "name": "example_data_processing",
+            "signature": "()",
+            "doc": "Example: Data processing with beautiful logs"
+          },
+          {
+            "name": "example_error_handling",
+            "signature": "()",
+            "doc": "Example: Error handling with colored logs"
+          },
+          {
+            "name": "example_model_observation",
+            "signature": "()",
+            "doc": "Example: Model observation with beautiful logs"
+          }
+        ],
+        "classes": [],
+        "doc": "CASCADE Color Logging Example\nShows how to integrate beautiful colored logs throughout your system.",
+        "error": null
+      },
+      {
+        "module": "cascade.logging.integrate",
+        "functions": [
+          {
+            "name": "integrate_cascade_logging",
+            "signature": "()",
+            "doc": "One-call integration for entire CASCADE system"
+          },
+          {
+            "name": "log_component",
+            "signature": "(component_name: str, system: str = 'CASCADE')",
+            "doc": "Decorator to add logging to any class or function"
+          },
+          {
+            "name": "log_data_processing",
+            "signature": "(dataset_name: str)",
+            "doc": "Decorator for data processing functions"
+          },
+          {
+            "name": "log_kleene_iterations",
+            "signature": "(operation_name: str)",
+            "doc": "Decorator specifically for Kleene fixed point iterations"
+          },
+          {
+            "name": "log_model_observation",
+            "signature": "(model_id: str)",
+            "doc": "Decorator for model observation functions"
+          }
+        ],
+        "classes": [],
+        "doc": "CASCADE Logging Integration\nPlug-and-play logging for existing CASCADE components.",
+        "error": null
+      },
+      {
+        "module": "cascade.logging.interpretive_logger",
+        "functions": [
+          {
+            "name": "get_interpretive_logger",
+            "signature": "(system: str) -> cascade.logging.interpretive_logger.InterpretiveLogger",
+            "doc": "Get or create interpretive logger for system"
+          },
+          {
+            "name": "translate_kleene_to_interpretive",
+            "signature": "(kleene_entry, interpretive_logger)",
+            "doc": "Translate mathematical log to human story"
+          }
+        ],
+        "classes": [
+          {
+            "name": "ImpactLevel",
+            "signature": "(*values)",
+            "doc": "Business impact levels",
+            "methods": []
+          },
+          {
+            "name": "InterpretiveEntry",
+            "signature": "(timestamp: float = <factory>, impact: cascade.logging.interpretive_logger.ImpactLevel = <ImpactLevel.LOW: '\ud83d\udfe2 LOW'>, system: str = '', component: str = '', event: str = '', context: str = '', consequence: str = '', metrics: Dict[str, Any] = <factory>, recommendation: Optional[str] = None) -> None",
+            "doc": "A human-readable system event",
+            "methods": [
+              {
+                "name": "format_display",
+                "signature": "(self) -> str"
+              }
+            ]
+          },
+          {
+            "name": "InterpretiveLogger",
+            "signature": "(system_name: str)",
+            "doc": "Human-readable system storytelling",
+            "methods": [
+              {
+                "name": "cascade_observation",
+                "signature": "(self, model: str, layers: int, merkle_root: str)"
+              },
+              {
+                "name": "data_processing",
+                "signature": "(self, dataset: str, records: int, operations: List[str])"
+              },
+              {
+                "name": "fixed_point_convergence",
+                "signature": "(self, operation: str, iterations: int, entities: int)"
+              },
+              {
+                "name": "log",
+                "signature": "(self, impact: cascade.logging.interpretive_logger.ImpactLevel, component: str, event: str, context: str, consequence: str, metrics: Optional[Dict] = None, recommendation: Optional[str] = None)"
+              },
+              {
+                "name": "model_loaded",
+                "signature": "(self, model_id: str, size_gb: float, device: str)"
+              },
+              {
+                "name": "performance_warning",
+                "signature": "(self, component: str, metric: str, value: float, threshold: float)"
+              },
+              {
+                "name": "security_event",
+                "signature": "(self, component: str, event: str, details: str)"
+              },
+              {
+                "name": "service_error",
+                "signature": "(self, component: str, error: str, impact: cascade.logging.interpretive_logger.ImpactLevel = <ImpactLevel.HIGH: '\ud83d\udfe0 HIGH'>)"
+              },
+              {
+                "name": "service_start",
+                "signature": "(self, component: str, port: int = None)"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE Interpretive Logger\nHuman-readable causation flow logging for operators and stakeholders.",
+        "error": null
+      },
+      {
+        "module": "cascade.logging.kleene_logger",
+        "functions": [
+          {
+            "name": "get_kleene_logger",
+            "signature": "(component: str) -> cascade.logging.kleene_logger.KleeneLogger",
+            "doc": "Get or create logger for component"
+          },
+          {
+            "name": "log_fixed_point",
+            "signature": "(operation: str)",
+            "doc": "Decorator to automatically log fixed point operations"
+          },
+          {
+            "name": "log_iterations",
+            "signature": "(operation: str)",
+            "doc": "Decorator for operations that iterate to fixed points"
+          }
+        ],
+        "classes": [
+          {
+            "name": "KleeneLogEntry",
+            "signature": "(timestamp: float = <factory>, level: cascade.logging.kleene_logger.LogLevel = <LogLevel.INFO: 'INFO'>, component: str = '', operation: str = '', state_before: Optional[Dict] = None, state_after: Optional[Dict] = None, fixed_point_reached: bool = False, iteration_count: int = 0) -> None",
+            "doc": "A single fixed point observation",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "KleeneLogger",
+            "signature": "(component_name: str)",
+            "doc": "Mathematical logging for fixed point systems",
+            "methods": [
+              {
+                "name": "critical_failure",
+                "signature": "(self, operation: str, error_state: Dict)"
+              },
+              {
+                "name": "divergence",
+                "signature": "(self, operation: str, state: Dict)"
+              },
+              {
+                "name": "fixed_point",
+                "signature": "(self, operation: str, final_state: Dict, iterations: int)"
+              },
+              {
+                "name": "get_session_hash",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "log",
+                "signature": "(self, level: cascade.logging.kleene_logger.LogLevel, operation: str, state_before: Optional[Dict] = None, state_after: Optional[Dict] = None, fixed_point: bool = False, iterations: int = 0)"
+              },
+              {
+                "name": "observe_operation",
+                "signature": "(self, operation: str, initial_state: Dict)"
+              }
+            ]
+          },
+          {
+            "name": "LogLevel",
+            "signature": "(*values)",
+            "doc": "Mathematical significance levels",
+            "methods": []
+          }
+        ],
+        "doc": "CASCADE Kleene Fixed Point Logger\nIndustry-standard mathematical logging for debugging and verification.",
+        "error": null
+      },
+      {
+        "module": "cascade.logging.log_manager",
+        "functions": [
+          {
+            "name": "get_log_manager",
+            "signature": "() -> cascade.logging.log_manager.CascadeLogManager",
+            "doc": "Get the global log manager"
+          },
+          {
+            "name": "init_logging",
+            "signature": "(config: Optional[cascade.logging.log_manager.LogConfig] = None) -> cascade.logging.log_manager.CascadeLogManager",
+            "doc": "Initialize the global CASCADE logging system"
+          },
+          {
+            "name": "log",
+            "signature": "(component: str, operation: str, context: str = '', consequence: str = '', metrics: Dict[str, Any] = None, impact: str = 'LOW', **kwargs)",
+            "doc": "Quick log operation - convenience function"
+          },
+          {
+            "name": "log_error",
+            "signature": "(component: str, operation: str, error: str, **kwargs)",
+            "doc": "Log error condition"
+          },
+          {
+            "name": "log_fixed_point",
+            "signature": "(component: str, operation: str, iterations: int, **kwargs)",
+            "doc": "Log successful fixed point"
+          },
+          {
+            "name": "log_performance",
+            "signature": "(component: str, metric: str, value: float, threshold: float)",
+            "doc": "Log performance warning"
+          }
+        ],
+        "classes": [
+          {
+            "name": "CascadeLogManager",
+            "signature": "(config: Optional[cascade.logging.log_manager.LogConfig] = None)",
+            "doc": "The conductor of your causation orchestra",
+            "methods": [
+              {
+                "name": "enable_file_logging",
+                "signature": "(self, filepath: str)"
+              },
+              {
+                "name": "get_session_stats",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "log_operation",
+                "signature": "(self, component: str, operation: str, level: cascade.logging.kleene_logger.LogLevel = <LogLevel.INFO: 'INFO'>, impact: cascade.logging.interpretive_logger.ImpactLevel = <ImpactLevel.LOW: '\ud83d\udfe2 LOW'>, details: Optional[Dict] = None)"
+              },
+              {
+                "name": "print_summary",
+                "signature": "(self)"
+              },
+              {
+                "name": "register_component",
+                "signature": "(self, component: str, system: str = 'CASCADE')"
+              },
+              {
+                "name": "set_mode",
+                "signature": "(self, mode: cascade.logging.log_manager.LogMode)"
+              }
+            ]
+          },
+          {
+            "name": "LogConfig",
+            "signature": "(mode: cascade.logging.log_manager.LogMode = <LogMode.DUAL: 'dual'>, min_level_kleene: cascade.logging.kleene_logger.LogLevel = <LogLevel.INFO: 'INFO'>, min_level_interpretive: cascade.logging.interpretive_logger.ImpactLevel = <ImpactLevel.LOW: '\ud83d\udfe2 LOW'>, show_metrics: bool = True, show_timestamps: bool = True, color_output: bool = True, file_output: bool = False, max_file_size_mb: int = 100) -> None",
+            "doc": "Configuration for logging behavior",
+            "methods": []
+          },
+          {
+            "name": "LogMode",
+            "signature": "(*values)",
+            "doc": "The two modes of logging excellence",
+            "methods": []
+          }
+        ],
+        "doc": "CASCADE Log Manager\nOrchestrates the tsunami of data into ordered causation troops.",
+        "error": null
+      },
+      {
+        "module": "cascade.observation",
+        "functions": [
+          {
+            "name": "get_observation_manager",
+            "signature": "() -> cascade.observation.ObservationManager",
+            "doc": "Get singleton observation manager."
+          }
+        ],
+        "classes": [
+          {
+            "name": "Observation",
+            "signature": "(observation_id: str, observation_type: str, source_id: str, source_root: str, chain: cascade.core.provenance.ProvenanceChain, merkle_root: str, user_hash: Optional[str] = None, created_at: float = <factory>, cid: Optional[str] = None) -> None",
+            "doc": "A single observation record in the lattice.",
+            "methods": []
+          },
+          {
+            "name": "ObservationManager",
+            "signature": "(lattice_dir: pathlib._local.Path = None)",
+            "doc": "Manages observations across all CASCADE tabs.",
+            "methods": [
+              {
+                "name": "get_model_observations",
+                "signature": "(self, model_id: str) -> List[Dict[str, Any]]"
+              },
+              {
+                "name": "get_observation",
+                "signature": "(self, merkle_root: str) -> Optional[cascade.observation.Observation]"
+              },
+              {
+                "name": "get_stats",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "list_observations",
+                "signature": "(self, observation_type: Optional[str] = None, source_id: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]"
+              },
+              {
+                "name": "observe_data",
+                "signature": "(self, dataset_a: str, dataset_b: str, chain: cascade.core.provenance.ProvenanceChain, user_hash: Optional[str] = None) -> cascade.observation.Observation"
+              },
+              {
+                "name": "observe_model",
+                "signature": "(self, model_id: str, chain: cascade.core.provenance.ProvenanceChain, user_hash: Optional[str] = None, **model_kwargs) -> cascade.observation.Observation"
+              },
+              {
+                "name": "observe_system",
+                "signature": "(self, source_name: str, chain: cascade.core.provenance.ProvenanceChain, user_hash: Optional[str] = None) -> cascade.observation.Observation"
+              },
+              {
+                "name": "pin_observation",
+                "signature": "(self, observation: cascade.observation.Observation) -> Optional[str]"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE Observation Manager",
+        "error": null
+      },
+      {
+        "module": "cascade.observe",
+        "functions": [
+          {
+            "name": "main",
+            "signature": "()",
+            "doc": ""
+          },
+          {
+            "name": "scoop_the_poop",
+            "signature": "(log_dir: pathlib._local.Path)",
+            "doc": "Baggies system - archive old logs on startup.\nKeeps the logs folder clean. Old sessions go to baggies/."
+          }
+        ],
+        "classes": [],
+        "doc": "Cascade Observer CLI.",
+        "error": null
+      },
+      {
+        "module": "cascade.patches.anthropic_patch",
+        "functions": [
+          {
+            "name": "patch_anthropic",
+            "signature": "(sdk: 'CascadeSDK')",
+            "doc": "Patch the Anthropic library to emit receipts on every call."
+          }
+        ],
+        "classes": [],
+        "doc": "Anthropic API Patch - Intercepts anthropic.messages.create() etc.",
+        "error": null
+      },
+      {
+        "module": "cascade.patches.huggingface_patch",
+        "functions": [
+          {
+            "name": "patch_huggingface",
+            "signature": "(sdk: 'CascadeSDK')",
+            "doc": "Patch HuggingFace libraries to emit receipts."
+          }
+        ],
+        "classes": [],
+        "doc": "HuggingFace Patch - Intercepts transformers and inference API calls.",
+        "error": null
+      },
+      {
+        "module": "cascade.patches.litellm_patch",
+        "functions": [
+          {
+            "name": "patch_litellm",
+            "signature": "(sdk: 'CascadeSDK')",
+            "doc": "Patch LiteLLM to emit receipts on every call."
+          }
+        ],
+        "classes": [],
+        "doc": "LiteLLM Patch - Intercepts litellm.completion() which unifies all providers.",
+        "error": null
+      },
+      {
+        "module": "cascade.patches.ollama_patch",
+        "functions": [
+          {
+            "name": "patch_ollama",
+            "signature": "(sdk: 'CascadeSDK')",
+            "doc": "Patch the Ollama library to emit receipts."
+          }
+        ],
+        "classes": [],
+        "doc": "Ollama Patch - Intercepts ollama library calls.",
+        "error": null
+      },
+      {
+        "module": "cascade.patches.openai_patch",
+        "functions": [
+          {
+            "name": "patch_openai",
+            "signature": "(sdk: 'CascadeSDK')",
+            "doc": "Patch the OpenAI library to emit receipts on every call."
+          }
+        ],
+        "classes": [],
+        "doc": "OpenAI API Patch - Intercepts openai.chat.completions.create() etc.",
+        "error": null
+      },
+      {
+        "module": "cascade.proxy",
+        "functions": [
+          {
+            "name": "run_proxy",
+            "signature": "(host: str = '0.0.0.0', port: int = 7777, verbose: bool = True)",
+            "doc": "Run the CASCADE proxy server."
+          }
+        ],
+        "classes": [
+          {
+            "name": "CascadeProxy",
+            "signature": "(host: str = '0.0.0.0', port: int = 7777, verbose: bool = True)",
+            "doc": "HTTP proxy that intercepts LLM API calls and emits CASCADE receipts.",
+            "methods": [
+              {
+                "name": "handle_request",
+                "signature": "(self, request: aiohttp.web_request.Request) -> aiohttp.web_response.Response"
+              },
+              {
+                "name": "shutdown",
+                "signature": "(self)"
+              },
+              {
+                "name": "start",
+                "signature": "(self, block: bool = False, timeout: float = 5.0)"
+              },
+              {
+                "name": "start_async",
+                "signature": "(self)"
+              },
+              {
+                "name": "status",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "stop",
+                "signature": "(self, timeout: float = 5.0)"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE Proxy - Protocol-level AI observation.",
+        "error": null
+      },
+      {
+        "module": "cascade.sdk",
+        "functions": [
+          {
+            "name": "init",
+            "signature": "(**kwargs)",
+            "doc": "Initialize CASCADE observation layer."
+          },
+          {
+            "name": "observe",
+            "signature": "(model_id: str, input_data: Any, output_data: Any, **kwargs)",
+            "doc": "Manually emit an observation."
+          },
+          {
+            "name": "shutdown",
+            "signature": "()",
+            "doc": "Shutdown CASCADE (flush pending receipts)."
+          }
+        ],
+        "classes": [
+          {
+            "name": "CascadeSDK",
+            "signature": "()",
+            "doc": "Main SDK singleton - manages patching and emission.",
+            "methods": [
+              {
+                "name": "init",
+                "signature": "(self, **kwargs)"
+              },
+              {
+                "name": "observe",
+                "signature": "(self, model_id: str, input_data: Any, output_data: Any, metrics: Optional[Dict] = None, context: Optional[Dict] = None)"
+              },
+              {
+                "name": "shutdown",
+                "signature": "(self)"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE SDK - Universal AI Observation Layer",
+        "error": null
+      },
+      {
+        "module": "cascade.store",
+        "functions": [
+          {
+            "name": "compute_cid",
+            "signature": "(data: bytes) -> str",
+            "doc": "Compute CIDv1 (base32) from bytes."
+          },
+          {
+            "name": "data_to_cid",
+            "signature": "(data: Dict[str, Any]) -> tuple[str, bytes]",
+            "doc": "Convert dict to (CID, encoded bytes)."
+          },
+          {
+            "name": "dataset_info",
+            "signature": "(dataset_id: str = None) -> Dict[str, Any]",
+            "doc": "Get full metadata for a dataset from HuggingFace."
+          },
+          {
+            "name": "discover_datasets",
+            "signature": "(query_str: str = 'cascade') -> List[Dict[str, Any]]",
+            "doc": "Search HuggingFace for cascade-related datasets."
+          },
+          {
+            "name": "discover_live",
+            "signature": "(dataset_id: str = None) -> Dict[str, Any]",
+            "doc": "Get LIVE activity on a dataset - who's observing right now?"
+          },
+          {
+            "name": "discover_models",
+            "signature": "(dataset_id: str = None) -> Dict[str, int]",
+            "doc": "Discover all model_ids in the lattice by scanning HuggingFace."
+          },
+          {
+            "name": "fetch_from_gateway",
+            "signature": "(cid: str, timeout: float = 10.0) -> Optional[bytes]",
+            "doc": "Fetch data from public IPFS gateways."
+          },
+          {
+            "name": "fetch_receipt",
+            "signature": "(cid: str, local_store: cascade.store.LocalStore = None) -> Optional[cascade.store.Receipt]",
+            "doc": "Fetch receipt by CID, checking local store first, then IPFS."
+          },
+          {
+            "name": "get",
+            "signature": "(cid: str) -> Optional[cascade.store.Receipt]",
+            "doc": "Get a specific observation by CID."
+          },
+          {
+            "name": "observe",
+            "signature": "(model_id: str, data: Dict[str, Any], parent_cid: Optional[str] = None, sync: bool = True) -> cascade.store.Receipt",
+            "doc": "Record an observation."
+          },
+          {
+            "name": "pull_from_hf",
+            "signature": "(dataset_id: str = None) -> int",
+            "doc": "Pull observations from a HuggingFace dataset."
+          },
+          {
+            "name": "query",
+            "signature": "(model_id: Optional[str] = None, since: Optional[float] = None, limit: int = 100, include_remote: bool = False) -> List[cascade.store.Receipt]",
+            "doc": "Query observations."
+          },
+          {
+            "name": "stats",
+            "signature": "() -> Dict[str, Any]",
+            "doc": "Get store statistics."
+          },
+          {
+            "name": "sync_all",
+            "signature": "() -> dict",
+            "doc": "Sync all local observations to HuggingFace."
+          },
+          {
+            "name": "sync_observation",
+            "signature": "(cid: str, filepath: pathlib._local.Path) -> dict",
+            "doc": "Sync a single observation to HuggingFace."
+          }
+        ],
+        "classes": [
+          {
+            "name": "LocalStore",
+            "signature": "(lattice_dir: pathlib._local.Path = None)",
+            "doc": "SQLite-backed local store with CBOR files.",
+            "methods": [
+              {
+                "name": "count",
+                "signature": "(self, model_id: Optional[str] = None) -> int"
+              },
+              {
+                "name": "get",
+                "signature": "(self, cid: str) -> Optional[cascade.store.Receipt]"
+              },
+              {
+                "name": "get_latest",
+                "signature": "(self, model_id: str) -> Optional[cascade.store.Receipt]"
+              },
+              {
+                "name": "query",
+                "signature": "(self, model_id: Optional[str] = None, since: Optional[float] = None, limit: int = 100) -> List[cascade.store.Receipt]"
+              },
+              {
+                "name": "save",
+                "signature": "(self, receipt: cascade.store.Receipt) -> str"
+              }
+            ]
+          },
+          {
+            "name": "Receipt",
+            "signature": "(cid: str, model_id: str, merkle_root: str, timestamp: float, data: Dict[str, Any], parent_cid: Optional[str] = None) -> None",
+            "doc": "A provenance receipt - proof that an observation happened.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE Store - Simple observe/query interface with HuggingFace",
+        "error": null
+      },
+      {
+        "module": "cascade.system.adapter",
+        "functions": [
+          {
+            "name": "auto_detect_adapter",
+            "signature": "(sample_lines: List[str]) -> cascade.system.adapter.LogAdapter",
+            "doc": "Auto-detect the best adapter for a set of sample lines."
+          },
+          {
+            "name": "detect_data_type",
+            "signature": "(lines: List[str]) -> Dict[str, Any]",
+            "doc": "Detect whether data looks like logs vs a dataset."
+          },
+          {
+            "name": "detect_log_format",
+            "signature": "(filepath: str) -> str",
+            "doc": "Detect log format from file."
+          }
+        ],
+        "classes": [
+          {
+            "name": "ApacheLogAdapter",
+            "signature": "()",
+            "doc": "Parse Apache Combined Log Format.",
+            "methods": [
+              {
+                "name": "parse_line",
+                "signature": "(self, line: str) -> Optional[cascade.system.adapter.ParsedEvent]"
+              }
+            ]
+          },
+          {
+            "name": "GenericLogAdapter",
+            "signature": "()",
+            "doc": "Parse generic timestamped logs.",
+            "methods": [
+              {
+                "name": "parse_line",
+                "signature": "(self, line: str) -> Optional[cascade.system.adapter.ParsedEvent]"
+              }
+            ]
+          },
+          {
+            "name": "JSONLAdapter",
+            "signature": "()",
+            "doc": "Parse JSON Lines format (one JSON object per line).",
+            "methods": [
+              {
+                "name": "parse_line",
+                "signature": "(self, line: str) -> Optional[cascade.system.adapter.ParsedEvent]"
+              }
+            ]
+          },
+          {
+            "name": "KubernetesLogAdapter",
+            "signature": "()",
+            "doc": "Parse Kubernetes events and pod logs.",
+            "methods": [
+              {
+                "name": "parse_line",
+                "signature": "(self, line: str) -> Optional[cascade.system.adapter.ParsedEvent]"
+              }
+            ]
+          },
+          {
+            "name": "LogAdapter",
+            "signature": "()",
+            "doc": "Base class for log adapters.",
+            "methods": [
+              {
+                "name": "parse_file",
+                "signature": "(self, filepath: str) -> Generator[cascade.system.adapter.ParsedEvent, NoneType, NoneType]"
+              },
+              {
+                "name": "parse_line",
+                "signature": "(self, line: str) -> Optional[cascade.system.adapter.ParsedEvent]"
+              },
+              {
+                "name": "parse_lines",
+                "signature": "(self, lines: List[str]) -> Generator[cascade.system.adapter.ParsedEvent, NoneType, NoneType]"
+              }
+            ]
+          },
+          {
+            "name": "NginxLogAdapter",
+            "signature": "()",
+            "doc": "Parse Nginx access logs (same format as Apache combined by default).",
+            "methods": []
+          },
+          {
+            "name": "ParsedEvent",
+            "signature": "(timestamp: float, event_type: str, component: str, data: Dict[str, Any], raw_line: str = '', event_hash: str = '', parent_hash: str = '') -> None",
+            "doc": "Standardized event parsed from any log format.",
+            "methods": [
+              {
+                "name": "to_cascade_event",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "RegexAdapter",
+            "signature": "(pattern: str, timestamp_format: str = None)",
+            "doc": "Parse logs using a custom regex pattern.",
+            "methods": [
+              {
+                "name": "parse_line",
+                "signature": "(self, line: str) -> Optional[cascade.system.adapter.ParsedEvent]"
+              }
+            ]
+          },
+          {
+            "name": "UniversalAdapter",
+            "signature": "()",
+            "doc": "THE UNIVERSAL ADAPTER - One parser to rule them all.",
+            "methods": [
+              {
+                "name": "parse_file",
+                "signature": "(self, filepath: str) -> Generator[cascade.system.adapter.ParsedEvent, NoneType, NoneType]"
+              },
+              {
+                "name": "parse_line",
+                "signature": "(self, line: str) -> Optional[cascade.system.adapter.ParsedEvent]"
+              },
+              {
+                "name": "parse_lines",
+                "signature": "(self, lines: List[str]) -> Generator[cascade.system.adapter.ParsedEvent, NoneType, NoneType]"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE System Observatory - Log Adapters",
+        "error": null
+      },
+      {
+        "module": "cascade.system.file_extractors",
+        "functions": [
+          {
+            "name": "extract_from_bytes",
+            "signature": "(data: bytes, filename: str) -> cascade.system.file_extractors.ExtractionResult",
+            "doc": "Extract log lines from raw bytes (e.g., uploaded file)."
+          },
+          {
+            "name": "extract_from_file",
+            "signature": "(file_path: str) -> cascade.system.file_extractors.ExtractionResult",
+            "doc": "Extract log lines from any supported file format."
+          },
+          {
+            "name": "get_extractor_for_file",
+            "signature": "(filename: str) -> Optional[cascade.system.file_extractors.BaseExtractor]",
+            "doc": "Get the appropriate extractor for a file based on extension."
+          },
+          {
+            "name": "get_supported_extensions",
+            "signature": "() -> List[str]",
+            "doc": "Get list of all supported file extensions."
+          },
+          {
+            "name": "get_supported_formats",
+            "signature": "() -> dict",
+            "doc": "Get mapping of format name to extensions."
+          }
+        ],
+        "classes": [
+          {
+            "name": "BaseExtractor",
+            "signature": "()",
+            "doc": "Base class for file format extractors.",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "Bz2Extractor",
+            "signature": "()",
+            "doc": "Extract from bzip2 compressed files.",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "CSVExtractor",
+            "signature": "()",
+            "doc": "Extract from CSV/TSV files.",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "ExcelExtractor",
+            "signature": "()",
+            "doc": "Extract from Excel files.",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "ExtractionResult",
+            "signature": "(lines: List[str], source_format: str, file_count: int = 1, total_bytes: int = 0, warnings: List[str] = None) -> None",
+            "doc": "Result of extracting log data from a file.",
+            "methods": []
+          },
+          {
+            "name": "GzipExtractor",
+            "signature": "()",
+            "doc": "Extract from gzip compressed files.",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "JSONExtractor",
+            "signature": "()",
+            "doc": "Extract from JSON/JSONL files.",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "PDFExtractor",
+            "signature": "()",
+            "doc": "Extract text from PDF files.",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "ParquetExtractor",
+            "signature": "()",
+            "doc": "Extract from Parquet files.",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "SQLiteExtractor",
+            "signature": "()",
+            "doc": "Extract from SQLite database files.",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "TarExtractor",
+            "signature": "()",
+            "doc": "Extract from TAR archives (.tar, .tar.gz, .tgz, .tar.bz2).",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "TextExtractor",
+            "signature": "()",
+            "doc": "Extract from plain text files (.log, .txt, .out, etc.)",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "WindowsEventLogExtractor",
+            "signature": "()",
+            "doc": "Extract from Windows Event Log files (.evtx).",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "XMLExtractor",
+            "signature": "()",
+            "doc": "Extract from XML log files.",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "YAMLExtractor",
+            "signature": "()",
+            "doc": "Extract from YAML files (often used for K8s events).",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          },
+          {
+            "name": "ZipExtractor",
+            "signature": "()",
+            "doc": "Extract from ZIP archives.",
+            "methods": [
+              {
+                "name": "extract",
+                "signature": "(self, file_path: str) -> cascade.system.file_extractors.ExtractionResult"
+              },
+              {
+                "name": "extract_bytes",
+                "signature": "(self, data: bytes, filename: str = '') -> cascade.system.file_extractors.ExtractionResult"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE System Observatory - File Format Extractors.",
+        "error": null
+      },
+      {
+        "module": "cascade.system.folder_processor",
+        "functions": [],
+        "classes": [],
+        "doc": null,
+        "error": "ModuleNotFoundError(\"No module named 'pandas'\")"
+      },
+      {
+        "module": "cascade.system.moe_analyzer",
+        "functions": [],
+        "classes": [
+          {
+            "name": "AnalysisInsight",
+            "signature": "(category: str, severity: str, title: str, description: str, evidence: List[str] = <factory>, affected_events: List[str] = <factory>) -> None",
+            "doc": "A single insight from specialist analysis.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "BaseSpecialist",
+            "signature": "()",
+            "doc": "Base class for domain specialist analyzers.",
+            "methods": [
+              {
+                "name": "analyze",
+                "signature": "(self, events: List[cascade.system.adapter.ParsedEvent], graph: cascade.core.graph.CausationGraph) -> cascade.system.moe_analyzer.SpecialistAnalysis"
+              }
+            ]
+          },
+          {
+            "name": "GenericSpecialist",
+            "signature": "()",
+            "doc": "Fallback specialist for unrecognized systems.",
+            "methods": [
+              {
+                "name": "analyze",
+                "signature": "(self, events: List[cascade.system.adapter.ParsedEvent], graph: cascade.core.graph.CausationGraph) -> cascade.system.moe_analyzer.SpecialistAnalysis"
+              }
+            ]
+          },
+          {
+            "name": "MLTrainingSpecialist",
+            "signature": "()",
+            "doc": "Specialist for ML Training systems.",
+            "methods": [
+              {
+                "name": "analyze",
+                "signature": "(self, events: List[cascade.system.adapter.ParsedEvent], graph: cascade.core.graph.CausationGraph) -> cascade.system.moe_analyzer.SpecialistAnalysis"
+              }
+            ]
+          },
+          {
+            "name": "MicroservicesSpecialist",
+            "signature": "()",
+            "doc": "Specialist for distributed microservices systems.",
+            "methods": [
+              {
+                "name": "analyze",
+                "signature": "(self, events: List[cascade.system.adapter.ParsedEvent], graph: cascade.core.graph.CausationGraph) -> cascade.system.moe_analyzer.SpecialistAnalysis"
+              }
+            ]
+          },
+          {
+            "name": "MoEAnalysisResult",
+            "signature": "(classification: cascade.system.moe_analyzer.TopologyClassification, primary_analysis: cascade.system.moe_analyzer.SpecialistAnalysis, secondary_analysis: Optional[cascade.system.moe_analyzer.SpecialistAnalysis], graph: cascade.core.graph.CausationGraph, events: List[cascade.system.adapter.ParsedEvent]) -> None",
+            "doc": "Complete result from MoE analysis pipeline.",
+            "methods": [
+              {
+                "name": "get_all_insights",
+                "signature": "(self) -> List[cascade.system.moe_analyzer.AnalysisInsight]"
+              },
+              {
+                "name": "get_critical_insights",
+                "signature": "(self) -> List[cascade.system.moe_analyzer.AnalysisInsight]"
+              },
+              {
+                "name": "get_narrative",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "MoEAnalyzer",
+            "signature": "()",
+            "doc": "Mixture of Experts System Analyzer.",
+            "methods": [
+              {
+                "name": "analyze",
+                "signature": "(self, events: List[cascade.system.adapter.ParsedEvent]) -> 'MoEAnalysisResult'"
+              },
+              {
+                "name": "get_available_specialists",
+                "signature": "(self) -> List[str]"
+              }
+            ]
+          },
+          {
+            "name": "SpecialistAnalysis",
+            "signature": "(topology: str, specialist: str, confidence: float, insights: List[cascade.system.moe_analyzer.AnalysisInsight] = <factory>, causal_links: List[cascade.core.event.CausationLink] = <factory>, metrics_summary: Dict[str, Any] = <factory>, narrative: str = '') -> None",
+            "doc": "Complete analysis from a specialist.",
+            "methods": [
+              {
+                "name": "to_dict",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "SystemClassifier",
+            "signature": "()",
+            "doc": "MoE Router - Classifies system topology from parsed events.",
+            "methods": [
+              {
+                "name": "classify",
+                "signature": "(self, events: List[cascade.system.adapter.ParsedEvent]) -> cascade.system.moe_analyzer.TopologyClassification"
+              }
+            ]
+          },
+          {
+            "name": "SystemTopology",
+            "signature": "()",
+            "doc": "Detected system topology with confidence scores.",
+            "methods": []
+          },
+          {
+            "name": "TopologyClassification",
+            "signature": "(primary: str, confidence: float, all_scores: Dict[str, float], evidence: Dict[str, List[str]], hybrid: bool = False, secondary: Optional[str] = None) -> None",
+            "doc": "Result of system topology classification.",
+            "methods": []
+          },
+          {
+            "name": "WebServiceSpecialist",
+            "signature": "()",
+            "doc": "Specialist for Web Service systems.",
+            "methods": [
+              {
+                "name": "analyze",
+                "signature": "(self, events: List[cascade.system.adapter.ParsedEvent], graph: cascade.core.graph.CausationGraph) -> cascade.system.moe_analyzer.SpecialistAnalysis"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE MoE System Analyzer - Mixture of Expert Specialists.",
+        "error": null
+      },
+      {
+        "module": "cascade.system.observer",
+        "functions": [
+          {
+            "name": "observe_log_file",
+            "signature": "(filepath: str) -> Generator[cascade.core.event.Event, NoneType, cascade.system.observer.SystemObservation]",
+            "doc": "Convenience function to observe a log file."
+          },
+          {
+            "name": "observe_log_stream",
+            "signature": "(lines: List[str], source: str = 'stream') -> Generator[cascade.core.event.Event, NoneType, cascade.system.observer.SystemObservation]",
+            "doc": "Convenience function to observe log lines."
+          },
+          {
+            "name": "write_system_tape",
+            "signature": "(observation: cascade.system.observer.SystemObservation, tape_dir: str = './logs') -> str",
+            "doc": "Write system observation to tape file for playback."
+          }
+        ],
+        "classes": [
+          {
+            "name": "SystemObservation",
+            "signature": "(source: str, adapter_name: str, events: List[cascade.system.adapter.ParsedEvent] = <factory>, merkle_root: str = '', chain_length: int = 0, event_counts: Dict[str, int] = <factory>, component_counts: Dict[str, int] = <factory>, time_range: tuple = (0.0, 0.0), parse_errors: int = 0) -> None",
+            "doc": "Result of observing a log source.",
+            "methods": [
+              {
+                "name": "compute_merkle_root",
+                "signature": "(self) -> str"
+              },
+              {
+                "name": "to_summary",
+                "signature": "(self) -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "SystemObserver",
+            "signature": "(adapter: cascade.system.adapter.LogAdapter = None)",
+            "doc": "Observe system logs and emit CASCADE events.",
+            "methods": [
+              {
+                "name": "get_all_events_for_viz",
+                "signature": "(self) -> List[Dict[str, Any]]"
+              },
+              {
+                "name": "get_provenance_summary",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "observe_file",
+                "signature": "(self, filepath: str, adapter: cascade.system.adapter.LogAdapter = None) -> Generator[cascade.core.event.Event, NoneType, cascade.system.observer.SystemObservation]"
+              },
+              {
+                "name": "observe_lines",
+                "signature": "(self, lines: List[str], source_name: str = 'input', adapter: cascade.system.adapter.LogAdapter = None) -> Generator[cascade.core.event.Event, NoneType, cascade.system.observer.SystemObservation]"
+              }
+            ]
+          }
+        ],
+        "doc": "CASCADE System Observer - Process logs into CASCADE events.",
+        "error": null
+      },
+      {
+        "module": "cascade.system.omnidirectional_analyzer",
+        "functions": [],
+        "classes": [],
+        "doc": null,
+        "error": "ModuleNotFoundError(\"No module named 'pandas'\")"
+      },
+      {
+        "module": "cascade.system.repo_ingester",
+        "functions": [],
+        "classes": [],
+        "doc": null,
+        "error": "ModuleNotFoundError(\"No module named 'pandas'\")"
+      },
+      {
+        "module": "cascade.system.universal_extractor",
+        "functions": [],
+        "classes": [],
+        "doc": null,
+        "error": "ModuleNotFoundError(\"No module named 'pandas'\")"
+      },
+      {
+        "module": "cascade.torch_hook",
+        "functions": [
+          {
+            "name": "instrument",
+            "signature": "(model: 'nn.Module', monitor=None, **kwargs) -> cascade.torch_hook.CascadeHook",
+            "doc": "Quick instrumentation of a PyTorch model."
+          }
+        ],
+        "classes": [
+          {
+            "name": "CascadeHook",
+            "signature": "(model: 'nn.Module', monitor: Optional[Any] = None, track_gradients: bool = True, track_weights: bool = True, track_activations: bool = False, layer_filter: Optional[Callable[[str, ForwardRef('nn.Module')], bool]] = None)",
+            "doc": "PyTorch hook for deep instrumentation.",
+            "methods": [
+              {
+                "name": "branch_report",
+                "signature": "(self) -> Dict[str, Any]"
+              },
+              {
+                "name": "capture_weights",
+                "signature": "(self)"
+              },
+              {
+                "name": "detect_issues",
+                "signature": "(self) -> List[str]"
+              },
+              {
+                "name": "find_dead_neurons",
+                "signature": "(self, threshold: float = 0.01) -> List[Dict[str, Any]]"
+              },
+              {
+                "name": "get_attention_pattern",
+                "signature": "(self, layer_name: str) -> Optional[Dict[str, Any]]"
+              },
+              {
+                "name": "get_layer_report",
+                "signature": "(self) -> Dict[str, Dict[str, Any]]"
+              },
+              {
+                "name": "predict_failure",
+                "signature": "(self, lookahead: int = 5) -> Dict[str, Any]"
+              },
+              {
+                "name": "remove",
+                "signature": "(self)"
+              },
+              {
+                "name": "step",
+                "signature": "(self, extra_data: Optional[Dict[str, Any]] = None)"
+              },
+              {
+                "name": "suggest_intervention",
+                "signature": "(self) -> Optional[Dict[str, Any]]"
+              },
+              {
+                "name": "trace_anomaly",
+                "signature": "(self, metric_name: str = 'loss') -> Dict[str, Any]"
+              }
+            ]
+          },
+          {
+            "name": "LayerStats",
+            "signature": "(name: str, param_count: int, grad_norm: Optional[float] = None, grad_mean: Optional[float] = None, grad_std: Optional[float] = None, weight_norm: Optional[float] = None, weight_mean: Optional[float] = None, weight_std: Optional[float] = None, activation_norm: Optional[float] = None, activation_mean: Optional[float] = None) -> None",
+            "doc": "Statistics for a single layer.",
+            "methods": []
+          }
+        ],
+        "doc": "Cascade PyTorch Hook - Deep Neural Network Instrumentation.",
+        "error": null
+      },
+      {
+        "module": "cascade.tui",
+        "functions": [],
+        "classes": [],
+        "doc": null,
+        "error": "ModuleNotFoundError(\"No module named 'textual'\")"
+      },
+      {
+        "module": "cascade.viz.tape",
+        "functions": [
+          {
+            "name": "create_tape_path",
+            "signature": "(log_dir: str = './logs', tape_type: str = 'cascade', session_id: Optional[int] = None) -> str",
+            "doc": "Generate a new tape file path."
+          },
+          {
+            "name": "find_latest_tape",
+            "signature": "(log_dir: str = './logs', tape_type: str = 'cascade') -> Optional[str]",
+            "doc": "Find the most recent tape file of a given type."
+          },
+          {
+            "name": "list_tape_files",
+            "signature": "(log_dir: str = './logs') -> Dict[str, List[str]]",
+            "doc": "List all available tape files by type."
+          },
+          {
+            "name": "load_tape_file",
+            "signature": "(tape_path: str) -> List[Dict[str, Any]]",
+            "doc": "Load events from a tape file (JSONL format)."
+          },
+          {
+            "name": "write_tape_event",
+            "signature": "(tape_path: str, event: Dict[str, Any]) -> None",
+            "doc": "Append a single event to a tape file."
+          }
+        ],
+        "classes": [
+          {
+            "name": "PlaybackBuffer",
+            "signature": "(events: List[cascade.viz.tape.PlaybackEvent] = <factory>, current_index: int = 0, is_complete: bool = False) -> None",
+            "doc": "Buffer of events for playback/analysis.",
+            "methods": [
+              {
+                "name": "add",
+                "signature": "(self, event: cascade.viz.tape.PlaybackEvent)"
+              },
+              {
+                "name": "get_events_up_to",
+                "signature": "(self, index: int) -> List[cascade.viz.tape.PlaybackEvent]"
+              }
+            ]
+          },
+          {
+            "name": "PlaybackEvent",
+            "signature": "(timestamp: float, event_type: str, data: Dict[str, Any]) -> None",
+            "doc": "A single event in the playback buffer.",
+            "methods": []
+          }
+        ],
+        "doc": "CASCADE Tape Utilities - JSONL tape file handling.",
+        "error": null
+      },
+      {
+        "module": "cascade.web3_pin",
+        "functions": [],
+        "classes": [],
+        "doc": null,
+        "error": "ModuleNotFoundError(\"No module named 'requests'\")"
+      }
+    ]
+  },
+  "quinesmith": {
+    "version": "0.1.1",
+    "root": "/data/data/com.termux/files/usr/lib/python3.13/site-packages/quinesmith",
+    "modules": [
+      {
+        "module": "quinesmith.audit",
+        "functions": [
+          {
+            "name": "pre_edit_checklist",
+            "signature": "() -> 'tuple[ChecklistItem, ...]'",
+            "doc": "Return the protocol's required pre-edit checklist."
+          },
+          {
+            "name": "should_stop",
+            "signature": "(events: 'Iterable[str]') -> 'bool'",
+            "doc": "Return True when the protocol says to stop and audit."
+          }
+        ],
+        "classes": [
+          {
+            "name": "ChecklistItem",
+            "signature": "(key: 'str', text: 'str') -> None",
+            "doc": "An observable audit item an agent can acknowledge in its transcript.",
+            "methods": []
+          }
+        ],
+        "doc": "Audit checklist primitives for quine-template edits.",
+        "error": null
+      },
+      {
+        "module": "quinesmith.failure_modes",
+        "functions": [],
+        "classes": [
+          {
+            "name": "FailureMode",
+            "signature": "(*values)",
+            "doc": "Canonical failure classes for quine template edits.",
+            "methods": []
+          }
+        ],
+        "doc": "Quine template failure mode taxonomy.",
+        "error": null
+      },
+      {
+        "module": "quinesmith.levels",
+        "functions": [
+          {
+            "name": "braces_required",
+            "signature": "(level: 'Level | int') -> 'int'",
+            "doc": "Return the brace count needed to represent a literal ``{x}`` at the given level."
+          }
+        ],
+        "classes": [
+          {
+            "name": "Level",
+            "signature": "(*values)",
+            "doc": "Template nesting level.",
+            "methods": []
+          }
+        ],
+        "doc": "Level and brace-count primitives.",
+        "error": null
+      },
+      {
+        "module": "quinesmith.transforms",
+        "functions": [
+          {
+            "name": "template_write_for",
+            "signature": "(transform: 'Transform | str') -> 'str'",
+            "doc": "Return what to write inside a Level-1 template for a known transform."
+          }
+        ],
+        "classes": [
+          {
+            "name": "Transform",
+            "signature": "(*values)",
+            "doc": "The nine Level-1 reference transformations from the protocol.",
+            "methods": []
+          }
+        ],
+        "doc": "Canonical template transformations from the Quine Template Edit Protocol.",
+        "error": null
+      },
+      {
+        "module": "quinesmith.verify",
+        "functions": [
+          {
+            "name": "explain_commands",
+            "signature": "() -> 'str'",
+            "doc": "Return a human-readable explanation of what each verification command checks."
+          },
+          {
+            "name": "prepare_commands",
+            "signature": "(quine_file: 'str | Path') -> 'str'",
+            "doc": "Prepare the five verification commands as a copy-pasteable shell block."
+          }
+        ],
+        "classes": [],
+        "doc": "Verification command preparers.",
+        "error": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+# Optional Cocoon faculties.
+# These are real capabilities, but they are not required for the living Python
+# cocoon core. On Termux/Android, prefer native packages where available.
+
+# Export faculty
+onnx>=1.14.0
+onnxruntime>=1.15.0
+
+# Pygame visual/game faculty
+pygame>=2.5.0
+
+# Plotting and drone visual faculties
+matplotlib>=3.8.0
+PyFlyt>=1.0.0
+
+# TrackMania RL faculty
+tmrl>=0.6.0

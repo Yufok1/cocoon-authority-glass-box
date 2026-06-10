@@ -1,0 +1,854 @@
+{
+  "purpose": "Global environment playbook for Mira-Kite cocoon training.",
+  "packages": {
+    "cascade-lattice": {
+      "distribution": "cascade-lattice",
+      "version": "0.8.3",
+      "summary": "Universal AI provenance layer \u2014 cryptographic receipts for every call, HOLD inference halt protocol, and code diagnostics",
+      "author": "Jeff Towers",
+      "license_expression": "MIT",
+      "requires_python": ">=3.9",
+      "project_urls": [
+        "Homepage, https://github.com/Yufok1/cascade-lattice",
+        "Documentation, https://github.com/Yufok1/cascade-lattice#readme",
+        "Repository, https://github.com/Yufok1/cascade-lattice",
+        "Issues, https://github.com/Yufok1/cascade-lattice/issues",
+        "Changelog, https://github.com/Yufok1/cascade-lattice/blob/main/CHANGELOG.md",
+        "Security, https://github.com/Yufok1/cascade-lattice/blob/main/SECURITY.md",
+        "Release Hardening, https://github.com/Yufok1/cascade-lattice/blob/main/docs/RELEASE_HARDENING.md"
+      ],
+      "import_name": "cascade",
+      "package_file": "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/__init__.py",
+      "module_files": [
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/analysis/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/analysis/metrics.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/analysis/tracer.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/bridge.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/cli_main.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/core/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/core/adapter.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/core/event.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/core/graph.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/core/provenance.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/core/web3_bridge.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/data/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/data/croissant.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/data/entities.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/data/hub.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/data/license.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/data/live.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/data/observer.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/data/pii.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/data/provenance.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/data/schema.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/demo.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/demo_sdk.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/diagnostics/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/diagnostics/bug_detector.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/diagnostics/code_tracer.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/diagnostics/demo.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/diagnostics/execution_monitor.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/diagnostics/report.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/export/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/export/tableau_export.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/forensics/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/forensics/analyzer.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/forensics/artifacts.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/forensics/fingerprints.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/genesis.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/hold/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/hold/primitives.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/hold/session.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/identity.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/ipld.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/listen.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/logging/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/logging/color_example.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/logging/integrate.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/logging/interpretive_logger.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/logging/kleene_logger.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/logging/log_manager.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/observation.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/observe.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/patches/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/patches/anthropic_patch.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/patches/huggingface_patch.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/patches/litellm_patch.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/patches/ollama_patch.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/patches/openai_patch.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/proxy.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/sdk.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/store.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/system/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/system/adapter.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/system/file_extractors.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/system/folder_processor.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/system/moe_analyzer.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/system/observer.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/system/omnidirectional_analyzer.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/system/repo_ingester.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/system/universal_extractor.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/torch_hook.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/tui.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/viz/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/viz/tape.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/cascade/web3_pin.py"
+      ],
+      "submodules": [
+        "cascade.analysis",
+        "cascade.analysis.metrics",
+        "cascade.analysis.tracer",
+        "cascade.bridge",
+        "cascade.cli_main",
+        "cascade.core",
+        "cascade.core.adapter",
+        "cascade.core.event",
+        "cascade.core.graph",
+        "cascade.core.provenance",
+        "cascade.core.web3_bridge",
+        "cascade.data",
+        "cascade.data.croissant",
+        "cascade.data.entities",
+        "cascade.data.hub",
+        "cascade.data.license",
+        "cascade.data.live",
+        "cascade.data.observer",
+        "cascade.data.pii",
+        "cascade.data.provenance",
+        "cascade.data.schema",
+        "cascade.demo",
+        "cascade.demo_sdk",
+        "cascade.diagnostics",
+        "cascade.diagnostics.bug_detector",
+        "cascade.diagnostics.code_tracer",
+        "cascade.diagnostics.demo",
+        "cascade.diagnostics.execution_monitor",
+        "cascade.diagnostics.report",
+        "cascade.export",
+        "cascade.export.tableau_export",
+        "cascade.forensics",
+        "cascade.forensics.analyzer",
+        "cascade.forensics.artifacts",
+        "cascade.forensics.fingerprints",
+        "cascade.genesis",
+        "cascade.hold",
+        "cascade.hold.primitives",
+        "cascade.hold.session",
+        "cascade.identity",
+        "cascade.ipld",
+        "cascade.listen",
+        "cascade.logging",
+        "cascade.logging.color_example",
+        "cascade.logging.integrate",
+        "cascade.logging.interpretive_logger",
+        "cascade.logging.kleene_logger",
+        "cascade.logging.log_manager",
+        "cascade.observation",
+        "cascade.observe",
+        "cascade.patches",
+        "cascade.patches.anthropic_patch",
+        "cascade.patches.huggingface_patch",
+        "cascade.patches.litellm_patch",
+        "cascade.patches.ollama_patch",
+        "cascade.patches.openai_patch",
+        "cascade.proxy",
+        "cascade.sdk",
+        "cascade.store",
+        "cascade.system",
+        "cascade.system.adapter",
+        "cascade.system.file_extractors",
+        "cascade.system.folder_processor",
+        "cascade.system.moe_analyzer",
+        "cascade.system.observer",
+        "cascade.system.omnidirectional_analyzer",
+        "cascade.system.repo_ingester",
+        "cascade.system.universal_extractor",
+        "cascade.torch_hook",
+        "cascade.tui",
+        "cascade.viz",
+        "cascade.viz.tape",
+        "cascade.web3_pin"
+      ],
+      "public_members": [
+        {
+          "name": "ArcadeFeedback",
+          "kind": "class",
+          "signature": "(message: str, intensity: float, sound_cue: str, color: Tuple[int, int, int] = (255, 255, 255)) -> None"
+        },
+        {
+          "name": "CausationGraph",
+          "kind": "class",
+          "signature": "()"
+        },
+        {
+          "name": "CausationHold",
+          "kind": "class",
+          "signature": "(cascade_bus=None)"
+        },
+        {
+          "name": "CausationLink",
+          "kind": "class",
+          "signature": "(from_event: str, to_event: str, causation_type: str, strength: float = 1.0, explanation: str = '', metrics_involved: List[str] = <factory>) -> None"
+        },
+        {
+          "name": "Event",
+          "kind": "class",
+          "signature": "(timestamp: float, component: str, event_type: str, data: Dict[str, Any] = <factory>, event_id: str = <factory>, source_signal: Optional[Any] = None) -> None"
+        },
+        {
+          "name": "Hold",
+          "kind": "class",
+          "signature": "()"
+        },
+        {
+          "name": "HoldAwareMixin",
+          "kind": "class",
+          "signature": "(*args, **kwargs)"
+        },
+        {
+          "name": "HoldPoint",
+          "kind": "class",
+          "signature": "(action_probs: numpy.ndarray, value: float, observation: Dict[str, Any], brain_id: str, action_labels: Optional[List[str]] = None, latent: Optional[numpy.ndarray] = None, attention: Optional[Dict[str, float]] = None, features: Optional[Dict[str, float]] = None, imagination: Optional[Dict[int, Dict]] = None, logits: Optional[numpy.ndarray] = None, reasoning: Optional[List[str]] = None, world_prediction: Optional[Dict[str, Any]] = None, id: str = <factory>, timestamp: float = <factory>, parent_merkle: Optional[str] = None, merkle_root: Optional[str] = None, state: cascade.hold.primitives.HoldState = <HoldState.PENDING: 'pending'>) -> None"
+        },
+        {
+          "name": "HoldResolution",
+          "kind": "class",
+          "signature": "(hold_point: cascade.hold.primitives.HoldPoint, action: int, was_override: bool, override_source: Optional[str] = None, hold_duration: float = 0.0, timestamp: float = <factory>, merkle_root: Optional[str] = None) -> None"
+        },
+        {
+          "name": "HoldSession",
+          "kind": "class",
+          "signature": "(session_id: str, agent_id: str, started_at: float, steps: List[cascade.hold.session.InferenceStep] = <factory>, current_index: int = 0, total_steps: int = 0, human_overrides: int = 0, correct_predictions: int = 0, combo: int = 0, max_combo: int = 0, speed_level: int = 0, speed_map: Dict[int, float] = <factory>, state: cascade.hold.session.SessionState = <SessionState.IDLE: 'idle'>) -> None"
+        },
+        {
+          "name": "HoldState",
+          "kind": "class",
+          "signature": "(*values)"
+        },
+        {
+          "name": "InferenceStep",
+          "kind": "class",
+          "signature": "(step_id: str, step_index: int, timestamp: float, input_context: Dict[str, Any], candidates: List[Dict[str, Any]], top_choice: Any, top_probability: float, hidden_state: Optional[numpy.ndarray] = None, attention_weights: Optional[Dict[str, float]] = None, chosen_value: Any = None, was_override: bool = False, override_by: str = 'model', cascade_hash: Optional[str] = None, _state_snapshot: Optional[Dict[str, Any]] = None) -> None"
+        },
+        {
+          "name": "MetricsEngine",
+          "kind": "class",
+          "signature": "(graph: Optional[cascade.core.graph.CausationGraph] = None)"
+        },
+        {
+          "name": "Monitor",
+          "kind": "class",
+          "signature": "(name: str = 'default')"
+        },
+        {
+          "name": "PlaybackBuffer",
+          "kind": "class",
+          "signature": "(events: List[cascade.viz.tape.PlaybackEvent] = <factory>, current_index: int = 0, is_complete: bool = False) -> None"
+        },
+        {
+          "name": "Receipt",
+          "kind": "class",
+          "signature": "(cid: str, model_id: str, merkle_root: str, timestamp: float, data: Dict[str, Any], parent_cid: Optional[str] = None) -> None"
+        },
+        {
+          "name": "SymbioticAdapter",
+          "kind": "class",
+          "signature": "()"
+        },
+        {
+          "name": "Tracer",
+          "kind": "class",
+          "signature": "(graph: cascade.core.graph.CausationGraph)"
+        },
+        {
+          "name": "analysis",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "auto_observe",
+          "kind": "function",
+          "signature": "(**kwargs)"
+        },
+        {
+          "name": "core",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "data",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "dataset_info",
+          "kind": "function",
+          "signature": "(dataset_id: str = None) -> Dict[str, Any]"
+        },
+        {
+          "name": "diagnostics",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "discover_datasets",
+          "kind": "function",
+          "signature": "(query_str: str = 'cascade') -> List[Dict[str, Any]]"
+        },
+        {
+          "name": "discover_live",
+          "kind": "function",
+          "signature": "(dataset_id: str = None) -> Dict[str, Any]"
+        },
+        {
+          "name": "discover_models",
+          "kind": "function",
+          "signature": "(dataset_id: str = None) -> Dict[str, int]"
+        },
+        {
+          "name": "export",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "find_latest_tape",
+          "kind": "function",
+          "signature": "(log_dir: str = './logs', tape_type: str = 'cascade') -> Optional[str]"
+        },
+        {
+          "name": "forensics",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "genesis",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "hold",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "hold_module",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "identity",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "init",
+          "kind": "function",
+          "signature": "(**kwargs)"
+        },
+        {
+          "name": "list_tape_files",
+          "kind": "function",
+          "signature": "(log_dir: str = './logs') -> Dict[str, List[str]]"
+        },
+        {
+          "name": "load_tape_file",
+          "kind": "function",
+          "signature": "(tape_path: str) -> List[Dict[str, Any]]"
+        },
+        {
+          "name": "logging",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "observation",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "observe",
+          "kind": "function",
+          "signature": "() -> cascade.Monitor"
+        },
+        {
+          "name": "patches",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "pull_from_hf",
+          "kind": "function",
+          "signature": "(dataset_id: str = None) -> int"
+        },
+        {
+          "name": "sdk",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "sdk_observe",
+          "kind": "function",
+          "signature": "(model_id: str, input_data: Any, output_data: Any, **kwargs)"
+        },
+        {
+          "name": "shutdown",
+          "kind": "function",
+          "signature": "()"
+        },
+        {
+          "name": "store",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "store_get",
+          "kind": "function",
+          "signature": "(cid: str) -> Optional[cascade.store.Receipt]"
+        },
+        {
+          "name": "store_observe",
+          "kind": "function",
+          "signature": "(model_id: str, data: Dict[str, Any], parent_cid: Optional[str] = None, sync: bool = True) -> cascade.store.Receipt"
+        },
+        {
+          "name": "store_query",
+          "kind": "function",
+          "signature": "(model_id: Optional[str] = None, since: Optional[float] = None, limit: int = 100, include_remote: bool = False) -> List[cascade.store.Receipt]"
+        },
+        {
+          "name": "store_stats",
+          "kind": "function",
+          "signature": "() -> Dict[str, Any]"
+        },
+        {
+          "name": "sync_all",
+          "kind": "function",
+          "signature": "() -> dict"
+        },
+        {
+          "name": "system",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "viz",
+          "kind": "module",
+          "signature": null
+        }
+      ]
+    },
+    "quinesmith": {
+      "distribution": "quinesmith",
+      "version": "0.1.1",
+      "summary": "Safe primitives and protocol for AI-assisted editing of templated code-generation in quine/capsule systems.",
+      "author": "Yufok1",
+      "license_expression": "Apache-2.0",
+      "requires_python": ">=3.10",
+      "project_urls": [
+        "Homepage, https://github.com/Yufok1/Quine-Forge",
+        "Repository, https://github.com/Yufok1/Quine-Forge",
+        "Issues, https://github.com/Yufok1/Quine-Forge/issues",
+        "Changelog, https://github.com/Yufok1/Quine-Forge/blob/main/CHANGELOG.md",
+        "Protocol, https://github.com/Yufok1/Quine-Forge/blob/main/docs/protocol.md",
+        "Threat Model, https://github.com/Yufok1/Quine-Forge/blob/main/SECURITY.md"
+      ],
+      "import_name": "quinesmith",
+      "package_file": "/data/data/com.termux/files/usr/lib/python3.13/site-packages/quinesmith/__init__.py",
+      "module_files": [
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/quinesmith/__init__.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/quinesmith/audit.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/quinesmith/failure_modes.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/quinesmith/levels.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/quinesmith/transforms.py",
+        "/data/data/com.termux/files/usr/lib/python3.13/site-packages/quinesmith/verify.py"
+      ],
+      "submodules": [
+        "quinesmith.audit",
+        "quinesmith.failure_modes",
+        "quinesmith.levels",
+        "quinesmith.transforms",
+        "quinesmith.verify"
+      ],
+      "public_members": [
+        {
+          "name": "FailureMode",
+          "kind": "class",
+          "signature": "(*values)"
+        },
+        {
+          "name": "Level",
+          "kind": "class",
+          "signature": "(*values)"
+        },
+        {
+          "name": "Transform",
+          "kind": "class",
+          "signature": "(*values)"
+        },
+        {
+          "name": "annotations",
+          "kind": "object",
+          "signature": null
+        },
+        {
+          "name": "braces_required",
+          "kind": "function",
+          "signature": "(level: 'Level | int') -> 'int'"
+        },
+        {
+          "name": "failure_modes",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "levels",
+          "kind": "module",
+          "signature": null
+        },
+        {
+          "name": "template_write_for",
+          "kind": "function",
+          "signature": "(transform: 'Transform | str') -> 'str'"
+        },
+        {
+          "name": "transforms",
+          "kind": "module",
+          "signature": null
+        }
+      ]
+    }
+  },
+  "integration_recipe": {
+    "cascade_lattice": [
+      "Use cascade.store.observe(model_id, data, sync=False) for every training cycle.",
+      "Use cascade query/list/stats to inspect receipts and chain continuity.",
+      "Use HOLD semantics to label the 6 action heads as observable decision faculties.",
+      "Do not require HOLD blocking for autonomous runtime; store the decision matrix as receipt data."
+    ],
+    "quinesmith": [
+      "Use Level and braces_required as fixed-point syntax drills.",
+      "Use Transform/template_write_for as safe template formulation drills.",
+      "Use verify.prepare_commands only to prepare operator commands; do not auto-run quine verification.",
+      "Map quine nesting to Mira-Kite fixed-point ladders: fixed -> template -> emit -> verify."
+    ],
+    "mira_kite": [
+      "Train from stable known anchors before introducing novel terms.",
+      "Bridge unknown terms into atomic language and knowledge_web relations.",
+      "Use predictable low-ID words for neural language targets; keep high-ID terms symbolic.",
+      "Action head labels: 0 observe, 1 associate, 2 recall, 3 reason, 4 respond, 5 verify.",
+      "Export checkpoint on interval and on interrupt."
+    ]
+  },
+  "cascade_store_api": [
+    {
+      "name": "Any",
+      "kind": "class",
+      "signature": "(*args, **kwargs)"
+    },
+    {
+      "name": "CENTRAL_DATASET",
+      "kind": "object",
+      "signature": null
+    },
+    {
+      "name": "CID",
+      "kind": "class",
+      "signature": "(base: 'Union[str, Multibase]', version: 'int', codec: 'Union[str, int, Multicodec]', digest: 'Union[str, BytesLike, Tuple[Union[str, int, Multihash], Union[str, BytesLike]]]') -> '_CIDSubclass'"
+    },
+    {
+      "name": "DEFAULT_LATTICE_DIR",
+      "kind": "object",
+      "signature": null
+    },
+    {
+      "name": "Dict",
+      "kind": "object",
+      "signature": null
+    },
+    {
+      "name": "IPFS_GATEWAYS",
+      "kind": "object",
+      "signature": null
+    },
+    {
+      "name": "List",
+      "kind": "object",
+      "signature": null
+    },
+    {
+      "name": "LocalStore",
+      "kind": "class",
+      "signature": "(lattice_dir: pathlib._local.Path = None)"
+    },
+    {
+      "name": "Optional",
+      "kind": "object",
+      "signature": null
+    },
+    {
+      "name": "Path",
+      "kind": "class",
+      "signature": "(*args, **kwargs)"
+    },
+    {
+      "name": "Receipt",
+      "kind": "class",
+      "signature": "(cid: str, model_id: str, merkle_root: str, timestamp: float, data: Dict[str, Any], parent_cid: Optional[str] = None) -> None"
+    },
+    {
+      "name": "USER_DATASET",
+      "kind": "object",
+      "signature": null
+    },
+    {
+      "name": "compute_cid",
+      "kind": "function",
+      "signature": "(data: bytes) -> str"
+    },
+    {
+      "name": "dag_cbor",
+      "kind": "module",
+      "signature": null
+    },
+    {
+      "name": "data_to_cid",
+      "kind": "function",
+      "signature": "(data: Dict[str, Any]) -> tuple[str, bytes]"
+    },
+    {
+      "name": "dataclass",
+      "kind": "function",
+      "signature": "(cls=None, /, *, init=True, repr=True, eq=True, order=False, unsafe_hash=False, frozen=False, match_args=True, kw_only=False, slots=False, weakref_slot=False)"
+    },
+    {
+      "name": "dataset_info",
+      "kind": "function",
+      "signature": "(dataset_id: str = None) -> Dict[str, Any]"
+    },
+    {
+      "name": "discover_datasets",
+      "kind": "function",
+      "signature": "(query_str: str = 'cascade') -> List[Dict[str, Any]]"
+    },
+    {
+      "name": "discover_live",
+      "kind": "function",
+      "signature": "(dataset_id: str = None) -> Dict[str, Any]"
+    },
+    {
+      "name": "discover_models",
+      "kind": "function",
+      "signature": "(dataset_id: str = None) -> Dict[str, int]"
+    },
+    {
+      "name": "fetch_from_gateway",
+      "kind": "function",
+      "signature": "(cid: str, timeout: float = 10.0) -> Optional[bytes]"
+    },
+    {
+      "name": "fetch_receipt",
+      "kind": "function",
+      "signature": "(cid: str, local_store: cascade.store.LocalStore = None) -> Optional[cascade.store.Receipt]"
+    },
+    {
+      "name": "field",
+      "kind": "function",
+      "signature": "(*, default=<dataclasses._MISSING_TYPE object at 0x7808b78d70>, default_factory=<dataclasses._MISSING_TYPE object at 0x7808b78d70>, init=True, repr=True, hash=None, compare=True, metadata=None, kw_only=<dataclasses._MISSING_TYPE object at 0x7808b78d70>)"
+    },
+    {
+      "name": "get",
+      "kind": "function",
+      "signature": "(cid: str) -> Optional[cascade.store.Receipt]"
+    },
+    {
+      "name": "get_genesis_root",
+      "kind": "function",
+      "signature": "() -> str"
+    },
+    {
+      "name": "hashlib",
+      "kind": "module",
+      "signature": null
+    },
+    {
+      "name": "json",
+      "kind": "module",
+      "signature": null
+    },
+    {
+      "name": "multihash",
+      "kind": "module",
+      "signature": null
+    },
+    {
+      "name": "observe",
+      "kind": "function",
+      "signature": "(model_id: str, data: Dict[str, Any], parent_cid: Optional[str] = None, sync: bool = True) -> cascade.store.Receipt"
+    },
+    {
+      "name": "os",
+      "kind": "module",
+      "signature": null
+    },
+    {
+      "name": "pull_from_hf",
+      "kind": "function",
+      "signature": "(dataset_id: str = None) -> int"
+    },
+    {
+      "name": "query",
+      "kind": "function",
+      "signature": "(model_id: Optional[str] = None, since: Optional[float] = None, limit: int = 100, include_remote: bool = False) -> List[cascade.store.Receipt]"
+    },
+    {
+      "name": "sqlite3",
+      "kind": "module",
+      "signature": null
+    },
+    {
+      "name": "stats",
+      "kind": "function",
+      "signature": "() -> Dict[str, Any]"
+    },
+    {
+      "name": "sync_all",
+      "kind": "function",
+      "signature": "() -> dict"
+    },
+    {
+      "name": "sync_observation",
+      "kind": "function",
+      "signature": "(cid: str, filepath: pathlib._local.Path) -> dict"
+    },
+    {
+      "name": "time",
+      "kind": "module",
+      "signature": null
+    }
+  ],
+  "cascade_hold_api": [
+    {
+      "name": "ArcadeFeedback",
+      "kind": "class",
+      "signature": "(message: str, intensity: float, sound_cue: str, color: Tuple[int, int, int] = (255, 255, 255)) -> None"
+    },
+    {
+      "name": "CausationHold",
+      "kind": "class",
+      "signature": "(cascade_bus=None)"
+    },
+    {
+      "name": "Hold",
+      "kind": "class",
+      "signature": "()"
+    },
+    {
+      "name": "HoldAwareMixin",
+      "kind": "class",
+      "signature": "(*args, **kwargs)"
+    },
+    {
+      "name": "HoldPoint",
+      "kind": "class",
+      "signature": "(action_probs: numpy.ndarray, value: float, observation: Dict[str, Any], brain_id: str, action_labels: Optional[List[str]] = None, latent: Optional[numpy.ndarray] = None, attention: Optional[Dict[str, float]] = None, features: Optional[Dict[str, float]] = None, imagination: Optional[Dict[int, Dict]] = None, logits: Optional[numpy.ndarray] = None, reasoning: Optional[List[str]] = None, world_prediction: Optional[Dict[str, Any]] = None, id: str = <factory>, timestamp: float = <factory>, parent_merkle: Optional[str] = None, merkle_root: Optional[str] = None, state: cascade.hold.primitives.HoldState = <HoldState.PENDING: 'pending'>) -> None"
+    },
+    {
+      "name": "HoldResolution",
+      "kind": "class",
+      "signature": "(hold_point: cascade.hold.primitives.HoldPoint, action: int, was_override: bool, override_source: Optional[str] = None, hold_duration: float = 0.0, timestamp: float = <factory>, merkle_root: Optional[str] = None) -> None"
+    },
+    {
+      "name": "HoldSession",
+      "kind": "class",
+      "signature": "(session_id: str, agent_id: str, started_at: float, steps: List[cascade.hold.session.InferenceStep] = <factory>, current_index: int = 0, total_steps: int = 0, human_overrides: int = 0, correct_predictions: int = 0, combo: int = 0, max_combo: int = 0, speed_level: int = 0, speed_map: Dict[int, float] = <factory>, state: cascade.hold.session.SessionState = <SessionState.IDLE: 'idle'>) -> None"
+    },
+    {
+      "name": "HoldState",
+      "kind": "class",
+      "signature": "(*values)"
+    },
+    {
+      "name": "InferenceStep",
+      "kind": "class",
+      "signature": "(step_id: str, step_index: int, timestamp: float, input_context: Dict[str, Any], candidates: List[Dict[str, Any]], top_choice: Any, top_probability: float, hidden_state: Optional[numpy.ndarray] = None, attention_weights: Optional[Dict[str, float]] = None, chosen_value: Any = None, was_override: bool = False, override_by: str = 'model', cascade_hash: Optional[str] = None, _state_snapshot: Optional[Dict[str, Any]] = None) -> None"
+    },
+    {
+      "name": "primitives",
+      "kind": "module",
+      "signature": null
+    },
+    {
+      "name": "session",
+      "kind": "module",
+      "signature": null
+    }
+  ],
+  "quinesmith_levels_api": [
+    {
+      "name": "IntEnum",
+      "kind": "class",
+      "signature": "(new_class_name, /, names, *, module=None, qualname=None, type=None, start=1, boundary=None)"
+    },
+    {
+      "name": "Level",
+      "kind": "class",
+      "signature": "(*values)"
+    },
+    {
+      "name": "annotations",
+      "kind": "object",
+      "signature": null
+    },
+    {
+      "name": "braces_required",
+      "kind": "function",
+      "signature": "(level: 'Level | int') -> 'int'"
+    }
+  ],
+  "quinesmith_transforms_api": [
+    {
+      "name": "Enum",
+      "kind": "class",
+      "signature": "(new_class_name, /, names, *, module=None, qualname=None, type=None, start=1, boundary=None)"
+    },
+    {
+      "name": "Transform",
+      "kind": "class",
+      "signature": "(*values)"
+    },
+    {
+      "name": "annotations",
+      "kind": "object",
+      "signature": null
+    },
+    {
+      "name": "template_write_for",
+      "kind": "function",
+      "signature": "(transform: 'Transform | str') -> 'str'"
+    }
+  ],
+  "quinesmith_verify_api": [
+    {
+      "name": "Path",
+      "kind": "class",
+      "signature": "(*args, **kwargs)"
+    },
+    {
+      "name": "annotations",
+      "kind": "object",
+      "signature": null
+    },
+    {
+      "name": "explain_commands",
+      "kind": "function",
+      "signature": "() -> 'str'"
+    },
+    {
+      "name": "prepare_commands",
+      "kind": "function",
+      "signature": "(quine_file: 'str | Path') -> 'str'"
+    }
+  ],
+  "cascade_cli_help": "usage: cascade [-h] [--version]\n               {stats,chains,init,watch,list,inspect,pin,export,observe,fingerprint,entities,pii,provenance,ingest,analyze,proxy,hold,hold-status} ...\n\nCASCADE - Universal AI Provenance Layer\n\npositional arguments:\n  {stats,chains,init,watch,list,inspect,pin,export,observe,fingerprint,entities,pii,provenance,ingest,analyze,proxy,hold,hold-status}\n                        Commands\n    stats               Show lattice statistics\n    chains              List all chains\n    init                Show setup instructions\n    watch               Watch live observations\n    list                List recent observations\n    inspect             Inspect an observation\n    pin                 Pin observation to IPFS\n    export              Export lattice/chain to JSON\n    observe             Manual observation\n    fingerprint         Fingerprint a model\n    entities            Entity resolution\n    pii                 Scan for PII\n    provenance          Data provenance\n    ingest              Ingest logs/files\n    analyze             Analyze logs/files\n    proxy               Start proxy server\n    hold                Show HOLD usage and API info\n    hold-status         Show HOLD system status\n\noptions:\n  -h, --help            show this help message and exit\n  --version, -v         Show version\n\nExamples:\n  cascade stats                    Show lattice statistics\n  cascade list -n 20               List recent observations\n  cascade chains                   List all chains\n  cascade inspect <root>           Inspect an observation\n  cascade watch                    Live observation feed\n  cascade proxy                    Start proxy server\n  cascade fingerprint <model>      Fingerprint a model\n  cascade pii <file>               Scan file for PII\n  cascade ingest <path>            Ingest logs/files"
+}

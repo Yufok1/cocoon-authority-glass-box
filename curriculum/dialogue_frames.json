@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "stages": [
+    {
+      "stage": 2,
+      "name": "echo_game",
+      "objective": "Exact short phrase copy before semantic conversation.",
+      "examples": [
+        {
+          "input": "I am clone",
+          "target": "I am clone"
+        },
+        {
+          "input": "we are here",
+          "target": "we are here"
+        },
+        {
+          "input": "the ball is near",
+          "target": "the ball is near"
+        }
+      ]
+    },
+    {
+      "stage": 4,
+      "name": "turn_exchange_game",
+      "objective": "Tiny two-turn exchanges with stable role words.",
+      "examples": [
+        {
+          "input": "hello",
+          "target": "hello"
+        },
+        {
+          "input": "I see you",
+          "target": "you see me"
+        },
+        {
+          "input": "we move then rest",
+          "target": "we move then rest"
+        }
+      ]
+    }
+  ],
+  "constraints": {
+    "max_words_initial": 5,
+    "avoid_tool_prompts": true,
+    "avoid_json_syntax": true
+  }
+}

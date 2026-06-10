@@ -1,0 +1,39 @@
+{
+  "pet_name": "Mira-Kite Cocoon",
+  "trained_cocoon": "cocoon_cognition_agency.py",
+  "source_lineage": "cocoon_ensemble_20260605220858.py -> cocoon_semantic_associated.py -> cocoon_cognition_agency.py",
+  "generated_unix": 1780698942.2227352,
+  "organisms": [
+    {
+      "id": "16525dfc6c33419b",
+      "pet_name": "Mira",
+      "fitness": 0.7538146542585202
+    },
+    {
+      "id": "0c019d24a56b0086",
+      "pet_name": "Kite",
+      "fitness": 0.604712
+    }
+  ],
+  "vocabulary_size": 78119,
+  "knowledge_concepts": 78099,
+  "knowledge_relations": 700,
+  "conversation_turns": 2140,
+  "training_logs": 1162,
+  "cognitive_faculties": {
+    "0": "observe",
+    "1": "associate",
+    "2": "recall",
+    "3": "reason",
+    "4": "respond",
+    "5": "verify"
+  },
+  "files_of_interest": [
+    "cocoon_cognition_agency.py",
+    "semantic_cocoon_trainer.py",
+    "pet_manifest.json",
+    "PET_NAME_AND_CARE.md",
+    "metadata.json",
+    "vocabulary.json"
+  ]
+}
