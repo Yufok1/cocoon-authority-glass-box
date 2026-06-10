@@ -64,6 +64,7 @@ CAPABILITIES: tuple[Capability, ...] = (
     Capability("tour", "compound", "Facility Tour", "POST", "/api/facility_tour", {}, "Tour across core facilities and records a receipt.", mutates=True),
     Capability("deepen", "compound", "Deepen Autopilot", "POST", "/api/deepen_facility", {"facility": "autopilot", "depth": 2}, "Staged deepening ladder for a facility.", deepen=True, mutates=True),
     Capability("feed", "compound", "Internet Scout", "POST", "/api/feed", {"url": "https://export.arxiv.org/rss/cs.AI", "max_items": 2, "steps": 2}, "Public feed scoring and lesson conversion.", safe_on_phone=False, deepen=True, mutates=True),
+    Capability("council", "compound", "Butterfly Council", "POST", "/api/council", {"prompt": "hello cocoon council", "learn": True, "steps": 1, "max_cocoons": 8, "export_after": False}, "Fan one prompt out across discovered runnable cocoons, aggregate their replies, and optionally train each one.", deepen=True, mutates=True),
     Capability("act", "action", "Action Head", "POST", "/api/native/act", {"state": [], "explore": False}, "Action selection and exploration."),
     Capability("learn", "action", "Reward Learn", "POST", "/api/native/learn", {"state": [], "action": 0, "reward": 0.1, "next_state": [], "done": False}, "ExperienceBuffer and train_step.", mutates=True),
     Capability("score", "action", "Curriculum Score", "POST", "/api/native/curriculum/score", {"event_type": "phone_score", "score": {"reward": 0.5}}, "Outside coach scoring without using coach as speaker.", mutates=True),

@@ -125,13 +125,178 @@ DEFAULT_SCOUT_FEEDS = [
 
 
 def load_cocoon(path: str):
-    spec = importlib.util.spec_from_file_location("mira_kite_authority_cocoon", path)
+    module_key = hashlib.sha1(str(Path(path).resolve()).encode("utf-8")).hexdigest()[:12]
+    spec = importlib.util.spec_from_file_location(f"mira_kite_authority_cocoon_{module_key}", path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Cannot import cocoon from {path}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def response_quality(prompt: str, response: str) -> dict[str, Any]:
+    response_words = clean_words(response)
+    prompt_words = set(clean_words(prompt))
+    if not response_words:
+        return {
+            "word_count": 0,
+            "unique_count": 0,
+            "unique_ratio": 0.0,
+            "prompt_overlap": 0.0,
+            "longest_run": 0,
+            "repetition_penalty": 1.0,
+            "primitive_signal": True,
+            "score": 0.05,
+        }
+    longest_run = 1
+    run = 1
+    for prev, word in zip(response_words, response_words[1:]):
+        if word == prev:
+            run += 1
+            longest_run = max(longest_run, run)
+        else:
+            run = 1
+    unique = set(response_words)
+    unique_ratio = len(unique) / max(1, len(response_words))
+    prompt_overlap = len(unique & prompt_words) / max(1, min(len(prompt_words), len(unique)))
+    repetition_penalty = min(0.75, max(0.0, (longest_run - 2) * 0.18 + max(0.0, 0.35 - unique_ratio)))
+    primitive_signal = longest_run >= 3 or unique_ratio < 0.35
+    score = clamp(
+        0.12
+        + (0.38 * unique_ratio)
+        + (0.28 * prompt_overlap)
+        + (0.14 * min(1.0, len(response_words) / 10.0))
+        - repetition_penalty,
+        0.05,
+        1.0,
+    )
+    return {
+        "word_count": len(response_words),
+        "unique_count": len(unique),
+        "unique_ratio": round(unique_ratio, 4),
+        "prompt_overlap": round(prompt_overlap, 4),
+        "longest_run": longest_run,
+        "repetition_penalty": round(repetition_penalty, 4),
+        "primitive_signal": primitive_signal,
+        "score": round(score, 4),
+    }
+
+
+def acclimation_lesson(prompt: str, response: str, anchors: list[str], faculty: str) -> str:
+    prompt_atoms = top_words(prompt, 16)
+    response_atoms = top_words(response, 16)
+    anchor_text = " ".join(anchors[:6] or ["understand", "reason", "respond", "verify"])
+    prompt_text = " ".join(prompt_atoms[:12])
+    response_text = " ".join(response_atoms[:12]) if response_atoms else "silent primitive output"
+    return (
+        "council acclimation lesson. "
+        f"prompt atoms: {prompt_text}. "
+        f"known anchors: {anchor_text}. "
+        f"faculty route: {faculty}. "
+        f"primitive response observed: {response_text}. "
+        "better response uses known anchors, preserves the request meaning, and answers with varied words."
+    )
+
+
+def summarize_agent_dialogue(agent: Any, prompt: str, learn: bool = True, steps: int = 1) -> dict[str, Any]:
+    input_dim = agent.brains[0].input_dim if getattr(agent, "brains", None) else 30
+    vp_info = (
+        agent.vp_runtime.compute_from_state(np.zeros(input_dim, dtype=np.float32), agent.reward_history)
+        if hasattr(agent, "vp_runtime")
+        else {"violation_pressure": 0.0}
+    )
+    current_vp = float(vp_info.get("violation_pressure", 0.0) or 0.0)
+    names = list(getattr(agent, "organism_names", []) or [])
+    if not names and getattr(agent, "brains", None):
+        names = [f"org_{idx}" for idx, _brain in enumerate(agent.brains)]
+    _known, predictable = vocabulary_sets(agent)
+    prompt_words = top_words(prompt, 64)
+    anchors = choose_anchors(prompt_words, predictable)
+    _action_id, faculty = classify_faculty(prompt_words + anchors)
+    responses = []
+    for i, name in enumerate(names):
+        response, confidence = agent.generate_response(prompt, organism_idx=i, vp_value=current_vp)
+        fitness = agent.organism_fitness[i] if i < len(getattr(agent, "organism_fitness", []) or []) else 1.0
+        semantic_reward = 0.25
+        if hasattr(agent, "_calculate_semantic_reward"):
+            semantic_reward = float(agent._calculate_semantic_reward(prompt, response, confidence, current_vp))
+        quality = response_quality(prompt, response)
+        base_weight = float(fitness) * float(confidence) * (0.5 + semantic_reward)
+        responses.append(
+            {
+                "organism": name,
+                "response": response,
+                "confidence": float(confidence),
+                "fitness": float(fitness),
+                "semantic_reward": semantic_reward,
+                "quality": quality,
+                "base_weight": base_weight,
+                "weight": base_weight * float(quality["score"]),
+            }
+        )
+    valid = [
+        r
+        for r in responses
+        if r["response"].strip()
+        and not r["response"].startswith("[")
+        and not r.get("quality", {}).get("primitive_signal")
+    ]
+    best = max(valid or responses, key=lambda item: item["weight"]) if responses else {}
+    best_quality = best.get("quality", {}) if isinstance(best.get("quality"), dict) else {}
+    reward = clamp(float(best.get("semantic_reward", 0.1)) * (0.55 + 0.45 * float(best_quality.get("score", 0.1))), 0.05, 0.95)
+    losses = []
+    lesson = acclimation_lesson(prompt, str(best.get("response", "")), anchors, faculty)
+    if learn and hasattr(agent, "learn_from_text"):
+        agent.learn_from_text(prompt, reward=reward, vp_value=current_vp)
+        agent.learn_from_text(lesson, reward=max(0.7, reward), vp_value=current_vp)
+        if hasattr(agent, "train_step"):
+            for _ in range(max(0, int(steps))):
+                loss = agent.train_step()
+                if loss and loss > 0 and not np.isnan(loss):
+                    losses.append(float(loss))
+        if hasattr(agent, "record_training_log"):
+            try:
+                agent.record_training_log(
+                    "council_chat_turn",
+                    stage="butterfly_council",
+                    input_text=prompt[:500],
+                    target=lesson[:500],
+                    output=str(best.get("response", ""))[:500],
+                    reward=reward,
+                    score={
+                        "semantic_reward": reward,
+                        "vp_value": current_vp,
+                        "losses": losses,
+                        "quality": best_quality,
+                        "anchors": anchors,
+                        "faculty": faculty,
+                    },
+                )
+            except Exception:
+                pass
+    if hasattr(agent, "conversation"):
+        try:
+            agent.conversation.add_message("user", prompt)
+            agent.conversation.add_message("assistant", str(best.get("response", "")), {"semantic_reward": reward})
+        except Exception:
+            pass
+    return {
+        "response": best.get("response", ""),
+        "all_responses": responses,
+        "selected_index": int(responses.index(best)) if best in responses else None,
+        "selected_organism": best.get("organism"),
+        "selected_weight": float(best.get("weight", 0.0) or 0.0),
+        "selected_quality": best_quality,
+        "semantic_reward": reward,
+        "vp_value": current_vp,
+        "anchors": anchors,
+        "faculty": faculty,
+        "acclimation_lesson": lesson,
+        "primitive_signals": sum(1 for r in responses if r.get("quality", {}).get("primitive_signal")),
+        "losses": losses,
+        "trained": bool(learn),
+    }
 
 
 def json_default(value: Any):
@@ -648,6 +813,7 @@ class AuthorityState:
             "native_cli_modes": {
                 "info": "metadata, architecture, vocabulary, alliance summary",
                 "chat": "interactive conversation with optional learning",
+                "council": "fan one prompt out across discovered runnable cocoons",
                 "serve": "Flask HTTP API in original cocoon; mirrored here without Flask",
                 "gym": "Gymnasium environments, training or inference",
                 "sphere": "headless or visual 3D swarm defense arena",
@@ -673,6 +839,7 @@ class AuthorityState:
                 "/act",
                 "/learn",
                 "/chat",
+                "/council",
                 "/teach",
                 "/vocab",
                 "/curriculum",
@@ -687,6 +854,7 @@ class AuthorityState:
                 "/api/native/facilities",
                 "/api/native/health",
                 "/api/native/chat",
+                "/api/council",
                 "/api/native/teach",
                 "/api/native/act",
                 "/api/native/learn",
@@ -1004,6 +1172,151 @@ class AuthorityState:
                 prompt, words, anchors, novel, arbitration, 0, 0, losses, self.last_receipt
             )
             self._record_event("native_chat", data)
+            self._write_status(data)
+            return data
+
+    def council_chat(
+        self,
+        prompt: str,
+        learn: bool = True,
+        steps: int = 1,
+        max_cocoons: int = 8,
+        export_after: bool = False,
+    ) -> dict[str, Any]:
+        with self.lock:
+            if not prompt.strip():
+                raise ValueError("prompt is required")
+            max_cocoons = max(1, min(int(max_cocoons), 24))
+            inventory = self.cocoon_inventory()
+            roster = []
+            for item in inventory.get("cocoons", []) or []:
+                if not item.get("runnable"):
+                    continue
+                path = Path(item.get("path", ""))
+                if path == self.cocoon_path:
+                    roster.insert(0, item)
+                else:
+                    roster.append(item)
+            roster = roster[:max_cocoons]
+            member_results = []
+            export_dir = self.output_dir / "butterfly_council"
+            if export_after:
+                export_dir.mkdir(parents=True, exist_ok=True)
+            for item in roster:
+                path = Path(item["path"])
+                try:
+                    module = load_cocoon(str(path))
+                    if not hasattr(module, "CocoonAgent"):
+                        raise RuntimeError("CocoonAgent missing")
+                    agent = module.CocoonAgent()
+                    dialogue = summarize_agent_dialogue(agent, prompt, learn=learn, steps=steps)
+                    export_path = None
+                    if export_after and hasattr(agent, "export_cocoon"):
+                        safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", path.stem or "cocoon")
+                        export_path = export_dir / f"{safe_name}_council.py"
+                        agent.export_cocoon(str(export_path))
+                    member_results.append(
+                        {
+                            "path": str(path),
+                            "name": item.get("display_name") or path.name,
+                            "dialogue": dialogue,
+                            "export_path": str(export_path) if export_path else None,
+                        }
+                    )
+                except Exception as exc:
+                    member_results.append(
+                        {
+                            "path": str(path),
+                            "name": item.get("display_name") or path.name,
+                            "error": str(exc),
+                        }
+                    )
+
+            successful = [member for member in member_results if member.get("dialogue")]
+            failed = [member for member in member_results if member.get("error")]
+            selected = None
+            for member in successful:
+                dialogue = member["dialogue"]
+                if not selected or float(dialogue.get("selected_weight", 0.0) or 0.0) > float(selected["dialogue"].get("selected_weight", 0.0) or 0.0):
+                    selected = member
+
+            central_losses = []
+            selected_dialogue = (selected or {}).get("dialogue", {})
+            central_lesson = str(selected_dialogue.get("acclimation_lesson") or "")
+            if learn and hasattr(self.agent, "learn_from_text"):
+                central_reward = float(selected_dialogue.get("semantic_reward", 0.1) or 0.1)
+                self.agent.learn_from_text(prompt, reward=central_reward, vp_value=0.0)
+                if central_lesson:
+                    self.agent.learn_from_text(central_lesson, reward=max(0.72, central_reward), vp_value=0.0)
+                central_losses = self._train_steps(steps)
+                if hasattr(self.agent, "record_training_log"):
+                    try:
+                        self.agent.record_training_log(
+                            "council_chat_turn",
+                            stage="authority_butterfly_council",
+                            input_text=prompt[:500],
+                            target=central_lesson[:500],
+                            output=str(selected_dialogue.get("response", ""))[:500],
+                            reward=central_reward,
+                            score={
+                                "members": len(successful),
+                                "failed_members": len(failed),
+                                "losses": central_losses,
+                                "selected_quality": selected_dialogue.get("selected_quality", {}),
+                                "primitive_signals": selected_dialogue.get("primitive_signals", 0),
+                                "anchors": selected_dialogue.get("anchors", []),
+                                "faculty": selected_dialogue.get("faculty"),
+                            },
+                        )
+                    except Exception:
+                        pass
+
+            consensus = selected_dialogue.get("response", "")
+            quality_summary = {
+                "primitive_signals": sum(int(member.get("dialogue", {}).get("primitive_signals", 0) or 0) for member in successful),
+                "member_quality": [
+                    {
+                        "name": member.get("name"),
+                        "selected_weight": member.get("dialogue", {}).get("selected_weight"),
+                        "selected_quality": member.get("dialogue", {}).get("selected_quality", {}),
+                        "anchors": member.get("dialogue", {}).get("anchors", []),
+                        "faculty": member.get("dialogue", {}).get("faculty"),
+                        "primitive_signals": member.get("dialogue", {}).get("primitive_signals", 0),
+                    }
+                    for member in successful
+                ],
+            }
+            data = {
+                "prompt": prompt[:1200],
+                "learn": bool(learn),
+                "steps": int(steps),
+                "max_cocoons": max_cocoons,
+                "member_count": len(member_results),
+                "successful_members": len(successful),
+                "failed_members": len(failed),
+                "members": member_results,
+                "selected_member": selected,
+                "consensus": consensus,
+                "response": consensus,
+                "quality_summary": quality_summary,
+                "acclimation_lesson": central_lesson,
+                "central_losses": central_losses,
+                "state": self.capability_snapshot(),
+            }
+            self.last_receipt = observe_receipt("mira_kite_authority_council_chat", data)
+            data["receipt"] = self.last_receipt
+            data["teacher_note"] = self._teacher_note(
+                prompt,
+                top_words(prompt, 64),
+                choose_anchors(top_words(prompt, 64), vocabulary_sets(self.agent)[1]),
+                [],
+                self._arbitrate(top_words(prompt, 64), choose_anchors(top_words(prompt, 64), vocabulary_sets(self.agent)[1]), "butterfly_council"),
+                0,
+                0,
+                central_losses,
+                self.last_receipt,
+            )
+            self._record_event("council_chat", data)
             self._write_status(data)
             return data
 
@@ -1433,6 +1746,7 @@ class AuthorityState:
             {"id": "mira", "label": "Mira", "type": "organism", "status": "ready"},
             {"id": "kite", "label": "Kite", "type": "organism", "status": "ready"},
             {"id": "chat", "label": "Chat", "type": "facility", "status": "ready"},
+            {"id": "council", "label": "Council", "type": "facility", "status": "ready"},
             {"id": "teach", "label": "Teach", "type": "facility", "status": "ready"},
             {"id": "drills", "label": "Drills", "type": "facility", "status": "ready"},
             {"id": "sphere", "label": "Sphere", "type": "game", "status": "ready" if readiness.get("sphere", {}).get("ready") else "blocked"},
@@ -1446,6 +1760,7 @@ class AuthorityState:
         edges = [
             {"from": "trainer", "to": "authority", "label": "input"},
             {"from": "authority", "to": "chat", "label": "camp"},
+            {"from": "authority", "to": "council", "label": "fan-out"},
             {"from": "authority", "to": "teach", "label": "academy"},
             {"from": "authority", "to": "drills", "label": "moves"},
             {"from": "authority", "to": "sphere", "label": "game"},
@@ -1457,6 +1772,8 @@ class AuthorityState:
             {"from": "authority", "to": "quine", "label": "syntax"},
             {"from": "chat", "to": "mira", "label": "response"},
             {"from": "chat", "to": "kite", "label": "response"},
+            {"from": "council", "to": "mira", "label": "consult"},
+            {"from": "council", "to": "kite", "label": "consult"},
             {"from": "teach", "to": "mira", "label": "association"},
             {"from": "teach", "to": "kite", "label": "action"},
             {"from": "drills", "to": "mira", "label": "anchors"},
@@ -1468,6 +1785,103 @@ class AuthorityState:
             "tape_path": self.tape_path,
             "graph_stats": self.graph.get_stats() if self.graph is not None else {},
             "recent_events": self.event_log[-20:],
+        }
+
+    def wealth_surface(self) -> dict[str, Any]:
+        state = self.capability_snapshot()
+        facility_map = self.facility_map()
+        facilities = self.native_facilities()
+        manifest = capability_manifest()
+        recent_events = self.event_log[-24:]
+        recent_lessons = self.education_log[-12:]
+
+        receipts: list[dict[str, Any]] = []
+        for event in recent_events:
+            data = event.get("data", {}) if isinstance(event, dict) else {}
+            receipt = data.get("receipt") or data.get("last_receipt")
+            if not receipt and isinstance(data.get("state"), dict):
+                receipt = data["state"].get("last_receipt")
+            if receipt:
+                receipts.append(
+                    {
+                        "time": event.get("time"),
+                        "kind": event.get("kind"),
+                        "receipt": str(receipt),
+                    }
+                )
+
+        cascade = {
+            "available": self.monitor is not None or self.adapter is not None,
+            "tape_path": str(self.tape_path) if self.tape_path else None,
+            "graph_stats": self.graph.get_stats() if self.graph is not None else {},
+            "errors": self.cascade_errors[-8:],
+            "latest_receipts": receipts[-12:],
+        }
+        if self.metrics is not None:
+            try:
+                cascade["metric_health"] = self.metrics.health_summary()
+            except Exception as exc:
+                cascade["metric_health_error"] = str(exc)
+
+        quine_ladders = quinesmith_ladders()
+        diagnostics = {
+            "capability_count": len(manifest.get("capabilities", [])),
+            "safe_phone_count": len([cap for cap in manifest.get("capabilities", []) if cap.get("safe_on_phone")]),
+            "mutating_count": len([cap for cap in manifest.get("capabilities", []) if cap.get("mutates")]),
+            "external_count": len([cap for cap in manifest.get("capabilities", []) if cap.get("risk_class") == "external"]),
+            "dependency_probe": facilities.get("dependency_probe", {}),
+            "dependency_errors": facilities.get("dependency_errors", {}),
+        }
+        mcp_stdio = {
+            "transport": "stdio JSON-RPC",
+            "command": "./cocoon mcp",
+            "tools": [
+                "doctor",
+                "list_cocoons",
+                "persistence",
+                "capabilities",
+                "run_capability",
+                "start_job",
+                "job_status",
+                "job_logs",
+                "stop_job",
+                "eval",
+                "eval_all",
+                "council",
+            ],
+            "note": "Authority HTTP routes and MCP stdio tools share the same capability fabric; the browser polls read-only telemetry here.",
+        }
+        wealth = state.get("last_informational_wealth") or self.last_wealth or {}
+        return {
+            "updated": time.time(),
+            "state": state,
+            "diagnostics": diagnostics,
+            "cascade": cascade,
+            "quine": {
+                "available": bool(quine_ladders),
+                "ladder_count": len(quine_ladders),
+                "sample_ladders": quine_ladders[:8],
+                "boundary": "syntax/fixed-point drills only; generated commands are never executed by Authority",
+            },
+            "mcp_stdio": mcp_stdio,
+            "facility_map": facility_map,
+            "capability_manifest": {
+                "groups": sorted({cap.get("group", "") for cap in manifest.get("capabilities", []) if cap.get("group")}),
+                "capabilities": manifest.get("capabilities", [])[:80],
+            },
+            "events": recent_events,
+            "lessons": recent_lessons,
+            "informational_wealth": wealth,
+            "feed_reports": self.feed_reports[-8:],
+            "summary": {
+                "active": state.get("active_cocoon_name"),
+                "vocabulary_size": state.get("vocabulary_size"),
+                "relations": state.get("knowledge_relations"),
+                "cycles": state.get("cycles"),
+                "last_receipt": state.get("last_receipt"),
+                "events": len(self.event_log),
+                "lessons": len(self.education_log),
+            },
         }
 
     def complete_facility_manual(self) -> dict[str, Any]:
@@ -1502,6 +1916,7 @@ class AuthorityState:
         cards = [
             card("autopilot", "Whole Facility", "Press one button. It scouts, drills, associates, verifies, receipts, and summarizes.", "Broad chat and reasoning growth from public signals plus known anchors.", "/api/autopilot", "autopilot", {"depth": 1}),
             card("chat", "Camp Chat", "Talk normally to the active cocoon.", "Conversation turns, semantic reward, response selection, and memory.", "/api/native/chat", "chat", {"prompt": "hello cocoon", "learn": True, "steps": 1}, deep="generate_response + semantic reward + optional learn_from_text"),
+            card("council", "Butterfly Council", "Fan one prompt out across every runnable cocoon and compare the answers.", "Parallel consultation, optional batch learning, and central response selection.", "/api/council", "council", {"prompt": "hello cocoon council", "learn": True, "steps": 1, "max_cocoons": 8, "export_after": False}, deep="Loads each runnable cocoon, aggregates the replies, and can export trained checkpoints."),
             card("teach", "Teach Lesson", "Give it one lesson or idea.", "New words, token links, knowledge web growth, and training logs.", "/api/native/teach", "teach", {"text": "signal means input that carries meaning", "reward": 0.8, "steps": 1}, deep="learn_from_text + record_training_log"),
             card("follow", "Follow Along", "Echo, cue, chain, role, or chant with it.", "Short word sequencing and cue-trigger association.", "/api/follow_along", "follow", {"mode": "cue", "seed": "signal meaning reason verify", "rounds": 6, "steps": 2}),
             card("relate", "Association Move", "Connect one phrase to another.", "Manual semantic relation and supervised pair links.", "/api/relate", "relate", {"source": "signal", "target": "meaning"}),
@@ -1757,6 +2172,14 @@ class AuthorityState:
             return self.capability_snapshot()
         if facility == "chat":
             return self.native_chat(str(payload.get("prompt", payload.get("message", "hello"))), bool(payload.get("learn", True)), int(payload.get("steps", 1)))
+        if facility == "council":
+            return self.council_chat(
+                str(payload.get("prompt", payload.get("message", "hello cocoon council"))),
+                bool(payload.get("learn", True)),
+                int(payload.get("steps", 1)),
+                int(payload.get("max_cocoons", 8)),
+                bool(payload.get("export_after", False)),
+            )
         if facility == "teach":
             return self.native_teach(str(payload.get("text", "")), float(payload.get("reward", 0.5)), str(payload.get("stage", "facility_teach")), str(payload.get("target", "")), bool(payload.get("allow_tool_language", False)), int(payload.get("steps", 1)))
         if facility == "relate":
@@ -2867,6 +3290,27 @@ https://hnrss.org/newest?q=machine%20learning</textarea>
           </div>
           <div id="chatStatus" class="status"></div>
         </section>
+        <section>
+          <h2>Butterfly Council</h2>
+          <div id="councilLog" class="chatlog"></div>
+          <textarea id="councilText" placeholder="Speak once to all runnable cocoons..."></textarea>
+          <div class="row3">
+            <select id="councilLearn" title="When enabled, each runnable cocoon trains on this prompt before the central response is chosen.">
+              <option value="true">learn on</option>
+              <option value="false">learn off</option>
+            </select>
+            <input id="councilSteps" title="Extra train steps for each runnable cocoon after the prompt." type="number" min="0" max="20" value="1">
+            <input id="councilLimit" title="Maximum runnable cocoons to consult in one pass." type="number" min="1" max="24" value="8">
+          </div>
+          <div class="row">
+            <select id="councilExport" title="Write trained council checkpoints to the local runtime directory.">
+              <option value="false">export off</option>
+              <option value="true">export on</option>
+            </select>
+            <button id="councilRun" class="primary" title="Fan one prompt out across every runnable cocoon, compare replies, and optionally train each one.">Council</button>
+          </div>
+          <div id="councilStatus" class="status"></div>
+        </section>
       </div>
 
       <div id="view-drills" class="view">
@@ -2931,6 +3375,7 @@ https://hnrss.org/newest?q=machine%20learning</textarea>
           <select id="facilitySelect" title="Run any mirrored cocoon facility from one control.">
             <option value="health">health</option>
             <option value="chat">chat</option>
+            <option value="council">council</option>
             <option value="teach">teach</option>
             <option value="act">act</option>
             <option value="learn">learn</option>
@@ -3003,8 +3448,12 @@ https://hnrss.org/newest?q=machine%20learning</textarea>
       <div id="view-wealth" class="view">
         <section>
           <h2>Battle Ledger</h2>
+          <div id="wealthStatus" class="status">Live wealth relay pending.</div>
+          <div id="wealthGrid" class="manualGrid"></div>
           <div id="procession" class="procession"></div>
           <div id="duelLesson" class="duel"></div>
+          <div id="wealthReceipts" class="edgeList"></div>
+          <div id="wealthEvents" class="edgeList"></div>
           <div id="ledgerMap" class="map"></div>
           <div id="lessonBox"></div>
         </section>
@@ -3143,6 +3592,7 @@ function operationPurpose(label) {
   if (text.includes('arbitrate')) return 'Run verification/governance over the signal and report faculty routing.';
   if (text.includes('drill')) return 'Generate follow-along pairs and train cue/echo/chain/role/chant behavior.';
   if (text.includes('sphere')) return 'Run a bounded action/reward game burst and report catches, misses, frames, and state.';
+  if (text.includes('council') || text.includes('consult')) return 'Fan one prompt across discovered runnable cocoons, compare replies, and optionally train each one.';
   if (text.includes('autopilot') || text.includes('armada')) return 'Run a multi-stage training pass: scout, drill, associate, verify, game, summarize.';
   if (text.includes('facility')) return 'Run the selected system route with the JSON payload shown here.';
   if (text.includes('harden')) return 'Audit health, dependencies, files, receipts, and route readiness.';
@@ -3662,6 +4112,72 @@ function renderTeacher(note) {
   `;
 }
 
+function renderWealthSurface(data) {
+  if (!data || typeof data !== 'object') return;
+  if (data.state) renderState(data.state);
+  if (data.facility_map) renderMap(data.facility_map);
+  if (data.informational_wealth && Object.keys(data.informational_wealth).length) renderWealth(data.informational_wealth);
+  const summary = data.summary || {};
+  const diagnostics = data.diagnostics || {};
+  const cascade = data.cascade || {};
+  const quine = data.quine || {};
+  const mcp = data.mcp_stdio || {};
+  const status = document.getElementById('wealthStatus');
+  if (status) {
+    const stamp = data.updated ? new Date(data.updated * 1000).toLocaleTimeString() : 'unknown';
+    status.textContent = `live ${stamp} | ${summary.active || 'cocoon'} | vocab ${summary.vocabulary_size || 0} | relations ${summary.relations || 0} | receipt ${String(summary.last_receipt || 'none').slice(0, 24)}`;
+  }
+  const grid = document.getElementById('wealthGrid');
+  if (grid) {
+    const depErrors = Object.keys(diagnostics.dependency_errors || {});
+    const groups = ((data.capability_manifest || {}).groups || []).join(', ');
+    grid.innerHTML = [
+      ['Capability Fabric', `${diagnostics.capability_count || 0} routes | safe ${diagnostics.safe_phone_count || 0} | mutating ${diagnostics.mutating_count || 0}`, groups || 'no groups'],
+      ['Cascade Lattice', cascade.available ? 'available' : 'limited', `receipts ${(cascade.latest_receipts || []).length} | tape ${cascade.tape_path || 'none'}`],
+      ['Quinesmith', quine.available ? `${quine.ladder_count || 0} ladders` : 'not available', quine.boundary || 'syntax boundary'],
+      ['MCP Stdio', mcp.command || './cocoon mcp', (mcp.tools || []).join(', ')],
+      ['Dependencies', depErrors.length ? `blocked: ${depErrors.join(', ')}` : 'ready dependencies only', JSON.stringify(diagnostics.dependency_probe || {})],
+      ['Events', `${summary.events || 0} recorded`, `${summary.lessons || 0} lessons | cycles ${summary.cycles || 0}`],
+    ].map(([title, body, detail]) => `<div class="toolCard ready">
+      <b>${escapeHtml(title)}</b>
+      <p>${escapeHtml(body)}</p>
+      <small>${escapeHtml(detail)}</small>
+    </div>`).join('');
+  }
+  const receipts = document.getElementById('wealthReceipts');
+  if (receipts) {
+    const rows = (cascade.latest_receipts || []).slice(-10).reverse();
+    receipts.innerHTML = '<b>Receipt Relay</b><br>' + (rows.length ? rows.map(r => `${escapeHtml(r.kind || 'event')} -> ${escapeHtml(String(r.receipt || '').slice(0, 48))}`).join('<br>') : 'no receipts yet');
+  }
+  const events = document.getElementById('wealthEvents');
+  if (events) {
+    const rows = (data.events || []).slice(-10).reverse();
+    events.innerHTML = '<b>Event Relay</b><br>' + (rows.length ? rows.map(e => {
+      const keys = e.data && typeof e.data === 'object' ? Object.keys(e.data).slice(0, 8).join(',') : '';
+      return `${escapeHtml(e.kind || 'event')} | ${escapeHtml(keys)}`;
+    }).join('<br>') : 'no events yet');
+  }
+  if (data.lessons && data.lessons.length) renderTeacher(data.lessons[data.lessons.length - 1]);
+}
+
+async function refreshWealthSurface(silent=false) {
+  try {
+    const res = await fetch('/api/wealth_surface');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || JSON.stringify(data));
+    renderWealthSurface(data);
+    if (!silent) {
+      show(data);
+      logTerm('Wealth surface refreshed', 'DONE');
+    }
+    return data;
+  } catch (err) {
+    const status = document.getElementById('wealthStatus');
+    if (status) status.textContent = 'wealth relay error: ' + String(err.message || err);
+    if (!silent) throw err;
+  }
+}
+
 function renderMap(map) {
   const nodes = map.nodes || [];
   const edges = map.edges || [];
@@ -3744,6 +4260,18 @@ function addChat(who, text) {
   $('chatLog').scrollTop = $('chatLog').scrollHeight;
 }
 
+function addCouncilChat(who, text) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + (String(who).toLowerCase() === 'you' ? 'user' : 'assistant');
+  const body = escapeHtml(String(text || '')).replace(/\n/g, '<br>');
+  div.innerHTML = `<b>${escapeHtml(who)}</b><br>${body}`;
+  const log = $('councilLog');
+  if (log) {
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+}
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -3799,6 +4327,28 @@ function bind() {
     const data = await api('/api/native/chat', {prompt:text, learn:$('chatLearn').value === 'true', steps:Number($('chatSteps').value || 0)});
     addChat(lastState && lastState.active_cocoon_name ? lastState.active_cocoon_name : 'Cocoon', data.response || '');
     $('chatText').value = '';
+    return data;
+  }));
+
+  b('councilRun', 'click', () => run('butterfly council', async () => {
+    const text = $('councilText').value.trim();
+    if (!text) throw new Error('Type a council prompt first.');
+    const learn = $('councilLearn').value === 'true';
+    const steps = Number($('councilSteps').value || 0);
+    const maxCocoons = Number($('councilLimit').value || 8);
+    const exportAfter = $('councilExport').value === 'true';
+    addCouncilChat('You', text);
+    const data = await api('/api/council', {
+      prompt: text,
+      learn,
+      steps,
+      max_cocoons: maxCocoons,
+      export_after: exportAfter
+    });
+    const selected = data.selected_member && data.selected_member.name ? data.selected_member.name : 'none';
+    addCouncilChat('Council', `${data.consensus || data.response || ''}\n\nmembers: ${data.successful_members || 0}/${data.member_count || 0}\nselected: ${selected}`);
+    $('councilStatus').textContent = `members ${data.successful_members || 0}/${data.member_count || 0} | selected ${selected} | receipt ${String(data.receipt || 'none').slice(0, 24)}`;
+    $('councilText').value = '';
     return data;
   }));
 
@@ -3870,6 +4420,13 @@ function bind() {
       if (send) send.click();
     }
   });
+  b('councilText', 'keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const send = document.getElementById('councilRun');
+      if (send) send.click();
+    }
+  });
 }
 
 bind();
@@ -3880,12 +4437,14 @@ run('initial refresh', async () => {
   const map = await api('/api/facility_map');
   const manual = await api('/api/facility_manual');
   const cocoons = await api('/api/cocoons');
+  const wealth = await refreshWealthSurface(true);
   renderContractMatrix();
   renderMap(map);
   renderManual(manual);
   renderCocoons(cocoons);
   return state;
 });
+setInterval(() => refreshWealthSurface(true), 4000);
 </script>
 </body>
 </html>
@@ -3969,6 +4528,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(self.authority.native_game_recipe(lane))
             elif parsed.path == "/api/facility_map":
                 self.send_json(self.authority.facility_map())
+            elif parsed.path == "/api/wealth_surface":
+                with self.authority.lock:
+                    self.send_json(self.authority.wealth_surface())
             elif parsed.path == "/api/facility_manual":
                 self.send_json(self.authority.complete_facility_manual())
             elif parsed.path == "/api/harden_facilities":
@@ -4034,6 +4596,17 @@ class Handler(BaseHTTPRequestHandler):
             elif parsed.path in {"/api/native/chat", "/chat"}:
                 prompt = payload.get("prompt", payload.get("message", ""))
                 self.send_json(self.authority.native_chat(str(prompt), bool(payload.get("learn", True)), int(payload.get("steps", 1))))
+            elif parsed.path == "/api/council":
+                prompt = payload.get("prompt", payload.get("message", ""))
+                self.send_json(
+                    self.authority.council_chat(
+                        str(prompt),
+                        bool(payload.get("learn", True)),
+                        int(payload.get("steps", 1)),
+                        int(payload.get("max_cocoons", 8)),
+                        bool(payload.get("export_after", False)),
+                    )
+                )
             elif parsed.path in {"/api/native/teach", "/teach"}:
                 self.send_json(
                     self.authority.native_teach(

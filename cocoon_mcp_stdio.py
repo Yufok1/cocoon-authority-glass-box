@@ -58,6 +58,39 @@ def tool_eval(args: dict[str, Any]) -> Any:
     )
 
 
+def tool_eval_all(args: dict[str, Any]) -> Any:
+    root = Path(args.get("root", ROOT))
+    max_cocoons = max(1, min(int(args.get("max_cocoons", 8)), 32))
+    discovered = [item for item in scan_cocoons(root) if item.get("runnable")]
+    results: list[dict[str, Any]] = []
+    for item in discovered[:max_cocoons]:
+        report = run_eval(
+            Path(item["path"]),
+            root=root,
+            delay_ms=int(args.get("delay_ms", 50)),
+            max_failures=int(args.get("max_failures", 1)),
+            no_receipt=bool(args.get("no_receipt", False)),
+        )
+        results.append({"path": item["path"], "name": item.get("name"), "report": report})
+    return {
+        "root": str(root),
+        "max_cocoons": max_cocoons,
+        "discovered": len(discovered),
+        "results": results,
+        "passed": all(result["report"].get("passed", False) for result in results) if results else False,
+    }
+
+
+def tool_council(args: dict[str, Any]) -> Any:
+    payload = args.get("payload") if isinstance(args.get("payload"), dict) else None
+    return request_json(
+        str(args.get("authority", "http://127.0.0.1:8765")),
+        CAPABILITY_INDEX["council"],
+        payload,
+        timeout=float(args.get("timeout", 120.0)),
+    )
+
+
 def tool_capabilities(args: dict[str, Any]) -> Any:
     return capability_manifest()
 
@@ -146,6 +179,41 @@ TOOLS: dict[str, tuple[str, dict[str, Any], Callable[[dict[str, Any]], Any]]] = 
             },
         },
         tool_eval,
+    ),
+    "eval_all": (
+        "Run smoke evals across discovered runnable cocoons under the managed root.",
+        {
+            "type": "object",
+            "properties": {
+                "root": {"type": "string"},
+                "max_cocoons": {"type": "integer"},
+                "delay_ms": {"type": "integer"},
+                "max_failures": {"type": "integer"},
+                "no_receipt": {"type": "boolean"},
+            },
+        },
+        tool_eval_all,
+    ),
+    "council": (
+        "Fan one prompt out across runnable cocoons and return the aggregate council reply.",
+        {
+            "type": "object",
+            "properties": {
+                "authority": {"type": "string"},
+                "timeout": {"type": "number"},
+                "payload": {
+                    "type": "object",
+                    "properties": {
+                        "prompt": {"type": "string"},
+                        "learn": {"type": "boolean"},
+                        "steps": {"type": "integer"},
+                        "max_cocoons": {"type": "integer"},
+                        "export_after": {"type": "boolean"},
+                    },
+                },
+            },
+        },
+        tool_council,
     ),
     "capabilities": (
         "List the full Cocoon Authority capability fabric grouped by purpose.",
