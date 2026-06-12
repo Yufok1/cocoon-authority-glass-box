@@ -21,3 +21,13 @@ quinesmith>=0.1.1
 
 # OpenGL Python bindings; actual visual use still needs a working GL/SDL stack.
 PyOpenGL>=3.1.7
+
+# Shared-bucket membrane (pull/push cocoons between the Butterfly + Cocoon Spaces)
+huggingface_hub>=1.0.0
+
+# Headless glass dashboard render (SDL dummy driver) + image streaming
+pygame>=2.5.0
+Pillow>=10.0.0
+
+# Cocoon ONNX inference path
+onnxruntime>=1.16.0

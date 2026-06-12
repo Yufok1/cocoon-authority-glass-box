@@ -1,3 +1,13 @@
+---
+title: Cocoon Authority Glass Box
+colorFrom: indigo
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+short_description: Train, compile, and illuminate cocoons - sister Space to Butterfly Field Station
+---
+
 # 🦋 Butterfly Cocoon - Standalone Agent
 
 **Generated:** 2026-06-05T22:08:58.006890
