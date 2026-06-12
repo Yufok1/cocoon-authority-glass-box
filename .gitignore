@@ -25,3 +25,13 @@ facility_save/
 *.pt
 *.pth
 *.ckpt
+
+# Generated test / runtime cocoon artifacts (regenerable)
+test_run/
+test_live/
+live_run/
+live_hegemony/
+mira_kite_runtime/
+cocoon_graph.json
+cocoon_mind.html
+*_cycle_*.py

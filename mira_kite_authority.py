@@ -3552,6 +3552,12 @@ https://hnrss.org/newest?q=machine%20learning</textarea>
           <pre id="out">{}</pre>
         </details>
       </section>
+      <section>
+        <h2>Glass Box &middot; live autonomous dashboard</h2>
+        <img id="glassStream" src="/glass.mjpg"
+             alt="Live dashboard warming up (the engine boots first)..."
+             style="width:100%;display:block;border:1px solid var(--line);border-radius:6px;background:#05070c;min-height:340px;" />
+      </section>
     </aside>
   </div>
 </main>
@@ -4525,12 +4531,57 @@ class Handler(BaseHTTPRequestHandler):
         raw = self.rfile.read(length) if length else b"{}"
         return json.loads(raw.decode("utf-8") or "{}")
 
+    def _stream_glass(self) -> None:
+        """Live MJPEG of the headless Glass dashboard's OWN rendered surface.
+
+        App-internal HTTP video (the app streaming its own frames) - NO display
+        server, NO screen-grab, NO VNC. HF-policy-safe.
+        """
+        try:
+            from PIL import Image as _Image
+            import cocoon_glass_phone as _glass
+        except Exception as exc:
+            self.send_json({"error": f"glass stream unavailable: {exc}"}, 503)
+            return
+        try:
+            self.send_response(200)
+            self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=glassframe")
+            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
+            self.send_header("Connection", "close")
+            self.end_headers()
+        except Exception:
+            return
+        import io as _io
+        import time as _time
+        try:
+            while True:
+                disp = getattr(_glass, "_GLASS_DISPLAY", None)
+                frame = disp.get_screen_frame() if disp is not None else None
+                if frame is not None:
+                    img = _Image.fromarray(frame)
+                    buf = _io.BytesIO()
+                    img.save(buf, format="JPEG", quality=72)
+                    data = buf.getvalue()
+                    self.wfile.write(b"--glassframe\r\n")
+                    self.wfile.write(b"Content-Type: image/jpeg\r\n")
+                    self.wfile.write(b"Content-Length: " + str(len(data)).encode() + b"\r\n\r\n")
+                    self.wfile.write(data)
+                    self.wfile.write(b"\r\n")
+                _time.sleep(1.0 / 12.0)
+        except (BrokenPipeError, ConnectionResetError, OSError):
+            return
+        except Exception:
+            return
+
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
         try:
             if parsed.path == "/":
                 self._send(200, HTML.encode("utf-8"), "text/html; charset=utf-8")
+            elif parsed.path == "/glass.mjpg":
+                self._stream_glass()
+                return
             elif parsed.path in {"/health", "/api/native/health"}:
                 self.send_json(self.authority.native_health())
             elif parsed.path in {"/api/state", "/info", "/api/native/info"}:
@@ -4723,6 +4774,32 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({"error": str(exc), "trace": traceback.format_exc()}, 500)
 
 
+def _start_glass_dashboard(port: int) -> None:
+    """Run the real Glass dashboard headless, in-process, so /glass.mjpg can
+    stream its own rendered frames. Dummy SDL driver => no display server."""
+    import os
+    import threading
+    os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+    os.environ.setdefault("DISPLAY", ":0")
+
+    def _runner():
+        try:
+            import cocoon_glass_phone as glass
+            glass.main([
+                "--authority", f"http://127.0.0.1:{port}",
+                "--afk", "--no-start-authority",
+                "--width", "1280", "--height", "800",
+            ])
+        except SystemExit:
+            pass
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
+    threading.Thread(target=_runner, daemon=True, name="glass-dashboard").start()
+    print("[MIRA-KITE] Glass dashboard thread started (headless) -> /glass.mjpg", flush=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Local cocoon trainer app")
     parser.add_argument("--cocoon", default="cocoon_cognition_agency.py")
@@ -4737,6 +4814,7 @@ def main() -> int:
     url = f"http://{args.host}:{args.port}/"
     print(f"[MIRA-KITE] Authority app running at {url}", flush=True)
     print("[MIRA-KITE] Press Ctrl+C to stop. Use Export Checkpoint before closing if you trained.", flush=True)
+    _start_glass_dashboard(args.port)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

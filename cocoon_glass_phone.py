@@ -417,6 +417,11 @@ def launch_authority(base_url: str) -> subprocess.Popen[bytes]:
     return proc
 
 
+# Exposed so an in-process host (mira_kite_authority) can stream the live
+# dashboard via this display's own get_screen_frame() - no display server.
+_GLASS_DISPLAY = None
+
+
 def run(args: argparse.Namespace) -> int:
     require_display()
     try:
@@ -432,6 +437,8 @@ def run(args: argparse.Namespace) -> int:
             launch_authority(args.authority)
             state = wait_for_authority(args.authority, args.timeout)
     display = GameDisplay(width=args.width, height=args.height, title="Cocoon Glass Authority")
+    global _GLASS_DISPLAY
+    _GLASS_DISPLAY = display
     display.start()
     if args.fullscreen:
         display.toggle_fullscreen()

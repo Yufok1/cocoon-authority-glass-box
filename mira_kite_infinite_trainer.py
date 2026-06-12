@@ -18,6 +18,7 @@ import importlib.util
 import json
 import os
 import re
+import sys
 import time
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -78,6 +79,10 @@ def load_cocoon(path: str):
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Cannot import cocoon from {path}")
     module = importlib.util.module_from_spec(spec)
+    # Register BEFORE exec_module so dataclasses/typing inside the cocoon can resolve
+    # their own module via sys.modules[cls.__module__] (otherwise @dataclass fields
+    # raise: 'NoneType' object has no attribute '__dict__').
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -354,6 +359,13 @@ def main() -> int:
                 "conversation_turns": agent.conversation.turn_count,
             }
             (output_dir / "runtime_status.json").write_text(json.dumps(status, indent=2, default=str), encoding="utf-8")
+            # LIVE MIND FEED: emit the cocoon's illumination graph each cycle so the lean
+            # neural display (cocoon_mind.html) polls it and grows live as the cocoon learns.
+            try:
+                from cocoon_graph import graph_from_agent, write_json
+                write_json(graph_from_agent(agent), str(output_dir / "cocoon_graph.json"))
+            except Exception:
+                pass
             print(json.dumps(status, indent=2, default=str), flush=True)
 
             if cycle % max(1, args.export_every) == 0:
